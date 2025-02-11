@@ -11,7 +11,7 @@
   },
   "permissions": ["sidePanel"],
   "background": {
-    "service_worker": "./src/background/background.ts"
+    "service_worker": "./src/background/background.js"
   },
   "options_page" : "src/optionsPage/optionsPage.html",
   "content_scripts": [
