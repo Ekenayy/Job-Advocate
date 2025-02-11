@@ -11,12 +11,12 @@
   },
   "permissions": ["sidePanel"],
   "background": {
-    "service_worker": "./src/background/background.js"
+    "service_worker": "src/background/background.ts"
   },
-  "options_page" : "src/optionsPage/optionsPage.html",
+  "options_page": "src/optionsPage/optionsPage.html",
   "content_scripts": [
     {
-      "js": ["src/content/content.ts"],
+      "js": ["src/content/content.tsx"],
       "matches": ["<all_urls>"]
     }
   ]
