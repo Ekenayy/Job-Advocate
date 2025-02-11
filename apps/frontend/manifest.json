@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Job Advocate Chrome Extension",
+  "version": "1.0.0",
+  "action": { 
+    "default_title": "Side Panel",
+    "default_icon": "src/assets/favicon.svg"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "permissions": ["sidePanel"],
+  "background": {
+    "service_worker": "./src/background/background.ts"
+  },
+  "options_page" : "src/optionsPage/optionsPage.html",
+  "content_scripts": [
+    {
+      "js": ["src/content/content.ts"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
