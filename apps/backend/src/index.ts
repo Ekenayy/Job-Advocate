@@ -2,13 +2,13 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import registerRoutes from './router';
-// import { swaggerSetup } from './middleware/swagger';
+import { swaggerSetup } from './middleware/swagger';
 
 const fastify = Fastify({
   logger: true,
 });
 
-// swaggerSetup(fastify);
+swaggerSetup(fastify);
 fastify.register(cors, { origin: '*' });
 fastify.register(helmet);
 await registerRoutes(fastify);
