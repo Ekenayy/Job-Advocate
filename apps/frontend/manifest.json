@@ -9,7 +9,15 @@
   "side_panel": {
     "default_path": "index.html"
   },
-  "permissions": ["sidePanel"],
+  "permissions": [
+    "sidePanel",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "background": {
     "service_worker": "src/background/background.ts"
   },
