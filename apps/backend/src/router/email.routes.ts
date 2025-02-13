@@ -1,8 +1,8 @@
 // Add email routes here
 
 import { FastifyInstance } from 'fastify';
-import { createEmailHandler } from '../handlers/email.handler';
-import { CreateEmailSchema } from '../schemas/email.schema';
+import { createEmailHandler, sendEmailHandler } from '../handlers/email.handler';
+import { CreateEmailSchema, EmailRequestSchema } from '../schemas/email.schema';
 
 export default async function emailRoutes(fastify: FastifyInstance) {
     fastify.post(
@@ -13,5 +13,15 @@ export default async function emailRoutes(fastify: FastifyInstance) {
         }
       },
       createEmailHandler
+    );
+
+    fastify.post(
+      '/email/send', 
+      {
+        schema: {
+          body: EmailRequestSchema
+        }
+      },
+      sendEmailHandler
     );
 }

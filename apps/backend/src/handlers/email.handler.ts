@@ -1,7 +1,8 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { supabase } from '../services/supabaseClient';
-import { CreateEmailSchemaType } from '../schemas/email.schema';
+import { CreateEmailSchemaType, EmailRequestSchemaType } from '../schemas/email.schema';
 import { SendEmailInput } from '../types/email.types';
+import { sendEmail } from '../services/emailService';
 
 export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateEmailSchemaType }>, reply: FastifyReply) => {
   
@@ -35,6 +36,23 @@ export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateE
     reply.status(201).send(responseData as SendEmailInput);
   } catch (error) {
       reply.status(500).send({ error: "Internal server error" });
+  }
+};
+
+export const sendEmailHandler = async (request: FastifyRequest<{ Body: EmailRequestSchemaType }>, reply: FastifyReply) => {
+  try {
+    const result = await sendEmail(request.body);
+    
+    if (!result.success) {
+      return reply.status(400).send(result);
+    }
+    
+    return reply.status(200).send(result);
+  } catch (error) {
+    return reply.status(500).send({ 
+      success: false, 
+      error: 'Internal server error' 
+    });
   }
 };
 

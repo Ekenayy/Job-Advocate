@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import { RESEND_API_KEY } from "../constants";
-import { EmailRequest, EmailResponse } from "../types/email";
+import { EmailRequest, EmailResponse } from "../types/email.types";
 
 const resend = new Resend(RESEND_API_KEY);
 
