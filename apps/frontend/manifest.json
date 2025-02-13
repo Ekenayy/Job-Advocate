@@ -10,13 +10,7 @@
     "default_path": "index.html"
   },
   "permissions": [
-    "sidePanel",
-    "scripting",
-    "tabs"
-  ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
+    "sidePanel"
   ],
   "background": {
     "service_worker": "src/background/background.ts"
