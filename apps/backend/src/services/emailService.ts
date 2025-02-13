@@ -12,9 +12,9 @@ export const sendEmail = async (
   try {
     const { data, error } = await resend.emails.send({
       // this will be the user's email address
-      from: "onboarding@resend.dev",
+      from: `${from.name} <onboarding@resend.dev>`,
       // this will be the advocate's email address
-      to: [`${to.first_name} ${to.last_name} <${to.email}>`],
+      to: [`${to.email}`],
       // this will be the ai generated subject line
       subject: content.subject,
       // this will be the ai generated / user edited email body
