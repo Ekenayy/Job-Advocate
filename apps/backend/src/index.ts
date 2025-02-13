@@ -2,7 +2,9 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import registerRoutes from './router';
-import { swaggerSetup } from './middleware/swagger';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
+// import { swaggerSetup } from './middleware/swagger';
 
 const fastify = Fastify({
   logger: true,
@@ -11,6 +13,27 @@ const fastify = Fastify({
 swaggerSetup(fastify);
 fastify.register(cors, { origin: '*' });
 fastify.register(helmet);
+
+// Register Swagger
+await fastify.register(swagger, {
+  swagger: {
+    info: {
+      title: 'Job Advocate Email API',
+      description: 'Job Advocate API documentation',
+      version: '0.0.1'
+    },
+  }
+});
+
+// Register Swagger UI
+await fastify.register(swaggerUi, {
+  routePrefix: '/documentation',
+  uiConfig: {
+    docExpansion: 'full',
+    deepLinking: false
+  },
+});
+
 await registerRoutes(fastify);
 
 fastify.get('/api/health', async (request, reply) => {
