@@ -30,14 +30,11 @@ export interface SendEmailInput {
 export interface UserInfo {
   name: string;
   email: string;
-  role: string;
 }
 export interface AdvocateInfo {
   first_name: string;
   last_name: string;
   email: string;
-  company: string;
-  role: string;
 }
 export interface EmailContent {
   subject: string;

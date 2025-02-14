@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaLinkedin } from "react-icons/fa";
+import  TextareaAutosize from 'react-textarea-autosize';
+import { PropagateLoader } from 'react-spinners';
 
 interface AdvocateProps {
   name: string;
@@ -7,9 +9,16 @@ interface AdvocateProps {
   company: string;
   initials: string;
   linkedin?: string;
+  isSelected: boolean;
+  isLoading: boolean;
+  onCompose: () => void;
+  onSendEmail: () => void;
 }
 
-const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin }) => {
+const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail }) => {
+  const [emailContent, setEmailContent] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  
   return (
     <div className="flex flex-col gap-6 pr-3 bg-gray-100 p-3 rounded-lg">
       <div className={`flex items-center justify-between`}>
@@ -25,11 +34,37 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
         <span className="font-bold">{company}</span>
         <span>{title}</span>
       </div>
-      <div className="flex">
-        <button className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+      {isSelected && 
+      <form className="flex flex-col gap-6" onSubmit={onSendEmail}>
+        <TextareaAutosize
+          name="subject"
+          value={emailSubject}
+          onChange={(e) => setEmailSubject(e.target.value)}
+          placeholder="Your Subject here.."
+          className="w-full p-2 border rounded-md"
+          minRows={1}
+        />
+        <TextareaAutosize
+          name="content"
+          value={emailContent}
+          onChange={(e) => setEmailContent(e.target.value)}
+          placeholder="Write your email here..."
+          className="w-full p-2 border rounded-md"
+          minRows={15}
+        />
+        <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
+          {isLoading ? <PropagateLoader color="#fff" size={10} className="p-3"/> : <span>Send Email</span>}
+        </button>
+      </form>
+      }
+      {!isSelected && <div className="flex">
+        <button 
+          onClick={onCompose}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
           Compose Email
         </button>
-      </div>
+      </div>}
     </div>
   );
 };
