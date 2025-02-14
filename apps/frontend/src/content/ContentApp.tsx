@@ -37,11 +37,52 @@ const advocates = [
   }
 ];
 
+const testBackground = 	{
+  "companyBackground": "Google is a global leader in technology and innovation, renowned for its transformative search engine, advertising platforms, and extensive suite of products and services. The company is committed to organizing the world's information and making it universally accessible and useful, while pushing the boundaries in areas like artificial intelligence, cloud computing, and quantum research. Google's culture of innovation, openness, and continuous learning empowers its teams to tackle some of the world's most challenging problems.",
+  "personBackground": "I am an experienced product manager with a strong passion for technology and user-centered design. Over the years, I have successfully led cross-functional teams to launch and scale innovative products in fast-paced environments. My background combines a deep understanding of market dynamics with technical acumen, enabling me to bridge the gap between business strategy and engineering execution.",
+  "myQualifications": "With over 8 years of product management experience, I have honed my skills in market research, agile development, and data-driven decision-making. I have a proven track record of managing the full product lifecycle, from ideation to launch and iteration. My ability to collaborate effectively with engineering, design, and marketing teams has resulted in the successful delivery of high-impact products. Additionally, my analytical mindset and strategic vision have been key in driving product innovation and growth.",
+  "jobRequirements": "The ideal candidate for the Product Manager role at Google should be a visionary leader with a strong grasp of technology trends and a passion for creating user-centric products. Key requirements include exceptional communication skills, experience in agile methodologies, and a demonstrated ability to translate complex problems into actionable product strategies. The role demands proficiency in data analysis, stakeholder management, and the ability to thrive in a dynamic, fast-paced environment while fostering cross-functional collaboration."
+}
+
+
 const ContentApp: React.FC = () => {
   const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const handleCompose = (advocate: Advocate) => {
+  const [isLoadingEmail, setIsLoadingEmail] = useState(false);
+  const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
+
+  const handleCompose = async (advocate: Advocate) => {
     setSelectedAdvocate(advocate);
+    setIsLoadingEmail(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          companyBackground: testBackground.companyBackground,
+          personBackground: testBackground.personBackground,
+          myQualifications: testBackground.myQualifications,
+          jobRequirements: testBackground.jobRequirements
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to generate email');
+      }
+  
+      const data = await response.json();
+      console.log('response data:', data);
+      setAIEmail(data);
+    } catch (error) {
+      console.error('Error generating email:', error);
+      throw error;
+    } finally {
+      setIsLoadingEmail(false);
+    }
+    
+
   };
 
   const handleClose = () => {
@@ -118,6 +159,8 @@ const ContentApp: React.FC = () => {
               linkedin={advocate.linkedin}
               onCompose={() => handleCompose(advocate)}
               onSendEmail={handleSendEmail}
+              AIEmail={AIEmail}
+              isLoadingEmail={isLoadingEmail}
             />
           ) : null
         ))}
