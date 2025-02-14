@@ -52,7 +52,7 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           value={emailSubject}
           onChange={(e) => setEmailSubject(e.target.value)}
           placeholder="Your Subject here.."
-          className="w-full p-2 border rounded-md"
+          className="w-full p-2 border rounded-md bg-white"
           minRows={1}
         />}
         {isLoadingEmail ? <Skeleton className="w-full p-2 rounded-md border h-[500px]"  /> : <TextareaAutosize
@@ -60,7 +60,7 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           value={emailContent}
           onChange={(e) => setEmailContent(e.target.value)}
           placeholder="Write your email here..."
-          className="w-full p-2 border rounded-md"
+          className="w-full p-2 border rounded-md bg-white"
           minRows={15}
         />}
         <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
