@@ -39,7 +39,7 @@ const advocates = [
 
 const ContentApp: React.FC = () => {
   const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
-
+  const [isLoading, setIsLoading] = useState(false);
   const handleCompose = (advocate: Advocate) => {
     setSelectedAdvocate(advocate);
   };
@@ -58,6 +58,8 @@ const ContentApp: React.FC = () => {
       console.error("No advocate selected");
       return;
     }
+
+    setIsLoading(true);
 
     const formBody = {
       user_id: "86318221-2f8e-43e2-822c-2d76e94b7aad",
@@ -84,9 +86,12 @@ const ContentApp: React.FC = () => {
       console.log("Email sent successfully");
       const data = await response.json();
       console.log('response data:', data);
+      setIsLoading(false);
+      setSelectedAdvocate(null);
     } catch (error) {
       console.error("Error sending email:", error);
-    }
+      setIsLoading(false);
+    } 
   };
 
   return (
@@ -109,6 +114,7 @@ const ContentApp: React.FC = () => {
               company={advocate.company}
               initials={advocate.initials}
               isSelected={selectedAdvocate === advocate}
+              isLoading={isLoading}
               linkedin={advocate.linkedin}
               onCompose={() => handleCompose(advocate)}
               onSendEmail={handleSendEmail}

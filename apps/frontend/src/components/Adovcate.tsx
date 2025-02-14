@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaLinkedin } from "react-icons/fa";
 import  TextareaAutosize from 'react-textarea-autosize';
+import { PropagateLoader } from 'react-spinners';
 
 interface AdvocateProps {
   name: string;
@@ -9,11 +10,12 @@ interface AdvocateProps {
   initials: string;
   linkedin?: string;
   isSelected: boolean;
+  isLoading: boolean;
   onCompose: () => void;
   onSendEmail: () => void;
 }
 
-const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, onCompose, onSendEmail }) => {
+const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail }) => {
   const [emailContent, setEmailContent] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
   
@@ -50,8 +52,8 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           className="w-full p-2 border rounded-md"
           minRows={15}
         />
-        <button type="submit" className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          Send Email
+        <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
+          {isLoading ? <PropagateLoader color="#fff" size={10} className="p-3"/> : <span>Send Email</span>}
         </button>
       </form>
       }
