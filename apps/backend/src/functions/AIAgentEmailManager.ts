@@ -36,7 +36,7 @@ export const emailAgent = async (
   
   Keep the emails short and concise. They should be no longer than 130 words. 
   
-  I want you to respond with an email subject and an email body as keys on an object.
+  I want you to respond with an email subject and an email body as a JSON object.
   
   Company Background: {company_background}
   Person Background: {person_background}
@@ -53,7 +53,13 @@ export const emailAgent = async (
     });
 
     const response = await llm.invoke(formattedPrompt);
-  // const prompt = await promptTemplate.invoke({})
 
-  return response;
+
+    const contentString = response.content.toString().replace(/```json\n|\n```/g, '');
+    const emailData = JSON.parse(contentString);
+  
+    return {
+      subject: emailData.subject,
+      body: emailData.body
+    };
 }

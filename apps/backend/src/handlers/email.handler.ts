@@ -109,7 +109,7 @@ export const generateEmailHandler = async (request: FastifyRequest<{ Body: Gener
     const responseAI = await emailAgent(companyBackground, personBackground, myQualifications, jobRequirements);
 
 
-    return reply.status(200).send({ responseAI });
+    return reply.status(200).send( responseAI );
   } catch (error) {
     console.error('Error generating email:', error);
     return reply.status(500).send({ error: 'Internal server error' });
