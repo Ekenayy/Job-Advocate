@@ -8,12 +8,15 @@ export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateE
   
   try {
 
+    const { email_body, subject } = request.body;
+
     const { data, error } = await supabase
       .from('emails')
       .insert(request.body)
       .select(
         `*,
-        user:users(id, email)
+        from:users(id, name, email),
+        to:advocates(id, first_name, last_name, email)
         `
       )
       .single();
@@ -24,8 +27,27 @@ export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateE
       reply.status(500).send({ error: error.message });
     }
 
-    // TODO: Uncomment this when we have a real API
-    // const APIResponse = await sendEmailToAPI({email_body: data.email_body, subject: data.subject, from_email: data.user.email, to_email: data.to_email});
+    const responseFromEmailService = await sendEmail({
+      from: {
+        name: data.from.name,
+        email: data.from.email
+      },
+      to: {
+        first_name: data.to.first_name,
+        last_name: data.to.last_name,
+        email: data.to.email
+      },
+      content: {
+        subject: subject,
+        body: email_body
+      }
+    });
+
+    if (responseFromEmailService.success) {
+      await updateEmail(data.id, 'sent', undefined, responseFromEmailService.data.id);
+    } else {
+      await updateEmail(data.id, 'failed', responseFromEmailService.error.message);
+    }
 
     const responseData: SendEmailInput = {
       email_id: data.id,
@@ -56,21 +78,24 @@ export const sendEmailHandler = async (request: FastifyRequest<{ Body: EmailRequ
   }
 };
 
-export const sendEmailToAPI = async (
-  {from_email, subject, email_body, to_email}: 
-  {from_email: string, subject: string, email_body: string, to_email: string}
-) => {
+export const updateEmail = async (email_id: number, status: string, error_message?: string, third_party_id?: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('emails')
+      .update({ status, error_message, third_party_id, sent_at: new Date().toISOString() })
+      .eq('id', email_id)
+      .select()
+      .single();
 
-  // TODO: Replace with actual API call
-  // Example with resend
-  const response = await fetch('https://api.email.com/send', {
-    method: 'POST',
-    body: JSON.stringify({ from: from_email, subject, text: email_body, to: to_email })
-  });
+      if (error) {
+        console.error('Error updating email:', error);
+      }
 
-  if (!response.ok) {
-    throw new Error('Failed to send email');
+      console.log('Email updated:', data);
+    
+      return data;
+  } catch (error) {
+    console.error('Error updating email:', error);
   }
 
-  return response.json();
-};
+}

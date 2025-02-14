@@ -15,15 +15,12 @@ export type CreateEmailSchemaType = Static<typeof CreateEmailSchema>;
 const UserInfoSchema = Type.Object({
   name: Type.String(),
   email: Type.String({ format: 'email' }),
-  role: Type.String()
 });
 
 const AdvocateInfoSchema = Type.Object({
   first_name: Type.String(),
   last_name: Type.String(),
   email: Type.String({ format: 'email' }),
-  company: Type.String(),
-  role: Type.String()
 });
 
 const EmailContentSchema = Type.Object({
