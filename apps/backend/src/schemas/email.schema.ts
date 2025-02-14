@@ -35,3 +35,12 @@ export const EmailRequestSchema = Type.Object({
 });
 
 export type EmailRequestSchemaType = Static<typeof EmailRequestSchema>;
+
+export const GenerateAIEmailSchema = Type.Object({
+  companyBackground: Type.Optional(Type.String()),
+  personBackground: Type.Optional(Type.String()),
+  myQualifications: Type.Optional(Type.String()),
+  jobRequirements: Type.Optional(Type.String())
+});
+
+export type GenerateAIEmailType = Static<typeof GenerateAIEmailSchema>;

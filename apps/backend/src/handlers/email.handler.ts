@@ -3,6 +3,8 @@ import { supabase } from '../services/supabaseClient';
 import { CreateEmailSchemaType, EmailRequestSchemaType } from '../schemas/email.schema';
 import { SendEmailInput } from '../types/email.types';
 import { sendEmail } from '../services/emailService';
+import { GenerateAIEmailType } from '../schemas/email.schema';
+import { emailAgent } from '../functions/AIAgentEmailManager';
 
 export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateEmailSchemaType }>, reply: FastifyReply) => {
   
@@ -98,4 +100,18 @@ export const updateEmail = async (email_id: number, status: string, error_messag
     console.error('Error updating email:', error);
   }
 
+}
+
+export const generateEmailHandler = async (request: FastifyRequest<{ Body: GenerateAIEmailType }>, reply: FastifyReply) => {
+  const { companyBackground, personBackground, myQualifications, jobRequirements } = request.body;
+
+  try {
+    const responseAI = await emailAgent(companyBackground, personBackground, myQualifications, jobRequirements);
+
+
+    return reply.status(200).send( responseAI );
+  } catch (error) {
+    console.error('Error generating email:', error);
+    return reply.status(500).send({ error: 'Internal server error' });
+  }
 }
