@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Advocate from "../components/Adovcate";
+import { Onboarding } from "../components/onboarding/Onboarding";
 
 interface Advocate {
   id: number;
@@ -50,6 +51,7 @@ const ContentApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
   const handleCompose = async (advocate: Advocate) => {
     setSelectedAdvocate(advocate);
@@ -134,6 +136,14 @@ const ContentApp: React.FC = () => {
       setIsLoading(false);
     } 
   };
+
+  if (!isOnboardingComplete) {
+    return (
+      <div className="p-4 max-w-md">
+        <Onboarding setIsOnboardingComplete={setIsOnboardingComplete} />
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 max-w-md">
