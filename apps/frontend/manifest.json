@@ -9,7 +9,7 @@
   "side_panel": {
     "default_path": "index.html"
   },
-  "permissions": ["sidePanel"],
+  "permissions": ["sidePanel", "activeTab"],
   "background": {
     "service_worker": "./src/background/background.ts"
   },
