@@ -22,7 +22,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
         setIsLoading(false);
         return;
       }
-      
+
       const formData = new FormData();
 
       formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad');
@@ -61,13 +61,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
     }
   }
 
-  const handleBack = () => {
-    setCurrentStep(currentStep - 1);
-  }
-
   const steps = [
     <SecondStep 
-      onBack={handleBack} 
       onNext={handleNext}
       jobTitle={jobTitle}
       setJobTitle={setJobTitle}

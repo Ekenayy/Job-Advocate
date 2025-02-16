@@ -3,7 +3,6 @@ import { PropagateLoader } from 'react-spinners';
 
 interface SecondStepProps {
   onNext: () => void;
-  onBack: () => void;
   jobTitle: string;
   setJobTitle: (title: string) => void;
   resume: File | null;
@@ -12,7 +11,7 @@ interface SecondStepProps {
   isLoading?: boolean;
 }
 
-const SecondStep: React.FC<SecondStepProps> = ({ onNext, onBack, jobTitle, setJobTitle, resume, setResume, error, isLoading }) => {
+const SecondStep: React.FC<SecondStepProps> = ({ onNext, jobTitle, setJobTitle, resume, setResume, error, isLoading }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -52,19 +51,13 @@ const SecondStep: React.FC<SecondStepProps> = ({ onNext, onBack, jobTitle, setJo
         </label>
       </div>
 
-      <div className="flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 p-2 border border-blue-600 text-blue-600 rounded-md"
-        >
-          Back
-        </button>
+      <div className="flex">
         <button
           onClick={onNext}
           disabled={isLoading || !resume}
           className="flex-1 p-2 bg-blue-600 text-white rounded-md disabled:bg-gray-300"
         >
-          {isLoading ? <PropagateLoader color="#000000" size={10} /> : 'Next'}
+          {isLoading ? <PropagateLoader color="#000000" size={10} className="p-3" /> : 'Complete Setup'}
         </button>
         {error && <p className="text-red-500">{error}</p>}
       </div>
