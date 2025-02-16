@@ -1,19 +1,16 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { MultipartValue } from '@fastify/multipart';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
 
-interface MultipartFields {
-  resume: MultipartValue<string>;
-}
-
 export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply) => {
-  const data = await request.body as MultipartFields;
+  // const data = await request.body as MultipartFields;
   const file = await request.file({limits: {fileSize: 10_000_000}}); // 10MB
-  
+
   if (!file) {
     return reply.status(400).send({ error: 'No file uploaded' });
   }
+
+  const user_id = (file.fields.user_id as any)?.value;
 
   const buffer = await file.toBuffer();
   const blob = new Blob([buffer], { type: file.mimetype });
@@ -33,9 +30,10 @@ export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply
       const docs = await loader.load();
       text = docs?.[0]?.pageContent || '';
     }
+    
     // Handle file upload and job title
     // Store in your database/storage
-    return reply.status(200).send({ success: true, text});
+    return reply.status(200).send({ text, user_id });
   } catch (error) {
     console.error('Error handling onboarding:', error);
     return reply.status(500).send({ error: 'Internal server error' });

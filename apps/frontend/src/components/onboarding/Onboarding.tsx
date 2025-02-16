@@ -18,6 +18,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       if (resume) {
         formData.append('resume', resume);
       }
+      formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad');
       // Save the data
       // chrome.storage.local.set({
       //   jobTitle,
