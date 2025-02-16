@@ -1,6 +1,7 @@
 // List of common job site domains
 const JOB_SITES = [
   "linkedin.com/jobs",
+  "job.ashbyhq.com",
   "indeed.com",
   "glassdoor.com",
   "monster.com",
@@ -8,6 +9,7 @@ const JOB_SITES = [
   "jobs.lever.co",
   "greenhouse.io",
   "workday.com",
+
   // Add more job sites as needed
 ];
 
@@ -75,7 +77,12 @@ const extractJobInfo = () => {
   if (currentUrl.includes("linkedin.com")) {
     jobTitle =
       document
-        .querySelector(".job-details-jobs-unified-top-card__job-title")
+        .querySelector("h1.job-details-jobs-unified-top-card__job-title")
+        ?.textContent?.trim() ||
+      document
+        .querySelector(
+          "[class*='job-details-jobs-unified-top-card__job-title']"
+        )
         ?.textContent?.trim() ||
       document.querySelector(".topcard__title")?.textContent?.trim() ||
       "";
@@ -90,8 +97,12 @@ const extractJobInfo = () => {
     jobTitle =
       document.querySelector(".job-title")?.textContent?.trim() ||
       document.querySelector(".css-1vg6q84")?.textContent?.trim() ||
+      document.querySelector("#jd-job-title-1009610292169")?.textContent?.trim() ||
       "";
-  }
+  } else if (currentUrl.includes("ashbyhq.com")) {
+    jobTitle = document.querySelector('#root ._titles_ud4nd_34 h1')?.textContent?.trim() || "";
+  } 
+  // we can add more later
 
   // Fallback to generic selectors if no site-specific match
   if (!jobTitle) {
