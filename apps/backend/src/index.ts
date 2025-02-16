@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import registerRoutes from './router';
 import { swaggerSetup } from './middleware/swagger';
+import multipart from '@fastify/multipart';
 
 const fastify = Fastify({
   logger: true,
@@ -11,6 +12,7 @@ const fastify = Fastify({
 swaggerSetup(fastify);
 fastify.register(cors, { origin: '*' });
 fastify.register(helmet);
+fastify.register(multipart);
 
 await registerRoutes(fastify);
 
