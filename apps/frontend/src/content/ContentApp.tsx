@@ -1,59 +1,32 @@
 import React, { useState } from "react";
-import Advocate from "../components/Adovcate";
+import Advocate from "../components/Advocate";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 import { Onboarding } from "../components/onboarding/Onboarding";
 
-interface Advocate {
-  id: number;
-  name: string;
-  title: string;
-  company: string;
-  initials: string; 
-  linkedin?: string | undefined;
+interface Employee {
+  first_name: string;
+  last_name: string;
+  position: string;
+  seniority: string;
+  email: string;
+  linkedin_url?: string;
 }
-
-
-const advocates = [
-  {
-    id: 1,
-    name: "Elon Jobs",
-    title: "Founder & CEO",
-    company: "Decagon",
-    initials: "EJ",
-    linkedin: "https://www.linkedin.com/in/elon-jobs/"
-  },
-  {
-    id: 1,
-    name: "David Mai",
-    title: "Director of Product",
-    company: "Decagon",
-    initials: "DM",
-    linkedin: "https://www.linkedin.com/in/elon-jobs/"
-  },
-  {
-    id: 1,
-    name: "Sean Joe",
-    title: "Product Manager",
-    company: "Decagon",
-    initials: "SJ"
-  }
-];
-
-const testBackground = 	{
-  "companyBackground": "Google is a global leader in technology and innovation, renowned for its transformative search engine, advertising platforms, and extensive suite of products and services. The company is committed to organizing the world's information and making it universally accessible and useful, while pushing the boundaries in areas like artificial intelligence, cloud computing, and quantum research. Google's culture of innovation, openness, and continuous learning empowers its teams to tackle some of the world's most challenging problems.",
-  "personBackground": "I am an experienced product manager with a strong passion for technology and user-centered design. Over the years, I have successfully led cross-functional teams to launch and scale innovative products in fast-paced environments. My background combines a deep understanding of market dynamics with technical acumen, enabling me to bridge the gap between business strategy and engineering execution.",
-  "myQualifications": "With over 8 years of product management experience, I have honed my skills in market research, agile development, and data-driven decision-making. I have a proven track record of managing the full product lifecycle, from ideation to launch and iteration. My ability to collaborate effectively with engineering, design, and marketing teams has resulted in the successful delivery of high-impact products. Additionally, my analytical mindset and strategic vision have been key in driving product innovation and growth.",
-  "jobRequirements": "The ideal candidate for the Product Manager role at Google should be a visionary leader with a strong grasp of technology trends and a passion for creating user-centric products. Key requirements include exceptional communication skills, experience in agile methodologies, and a demonstrated ability to translate complex problems into actionable product strategies. The role demands proficiency in data analysis, stakeholder management, and the ability to thrive in a dynamic, fast-paced environment while fostering cross-functional collaboration."
-}
-
 
 const ContentApp: React.FC = () => {
-  const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
+  const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
+  const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(true);
 
-  const handleCompose = async (advocate: Advocate) => {
+  const handleEmployeesFound = (employees: Employee[]) => {
+    setAdvocates(employees);
+    setShowConfirmation(false);
+  };
+
+  const handleCompose = async (advocate: Employee) => {
     setSelectedAdvocate(advocate);
     setIsLoadingEmail(true);
     try {
@@ -142,7 +115,20 @@ const ContentApp: React.FC = () => {
       <div className="p-4 max-w-md">
         <Onboarding setIsOnboardingComplete={setIsOnboardingComplete} />
       </div>
-    )
+    );
+  }
+
+  if (showConfirmation) {
+    return (
+      <div className="p-4 max-w-md">
+        <ConfirmationDialog
+          onClose={() => setShowConfirmation(false)}
+          onEmployeesFound={handleEmployeesFound}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+        />
+      </div>
+    );
   }
 
   return (
@@ -156,18 +142,18 @@ const ContentApp: React.FC = () => {
         </button>
       </div>
       <div className="flex flex-col gap-14">
-        {advocates.map((advocate) => (
-          selectedAdvocate === null || selectedAdvocate === advocate ? (
+        {advocates.map((employee) => (
+          selectedAdvocate === null || selectedAdvocate === employee ? (
             <Advocate
-              key={advocate.initials}
-              name={advocate.name}
-              title={advocate.title}
-              company={advocate.company}
-              initials={advocate.initials}
-              isSelected={selectedAdvocate === advocate}
+              key={`${employee.first_name}-${employee.last_name}`}
+              name={`${employee.first_name} ${employee.last_name}`}
+              title={employee.position}
+              company={employee.seniority}
+              initials={`${employee.first_name[0]}${employee.last_name[0]}`}
+              isSelected={selectedAdvocate === employee}
               isLoading={isLoading}
-              linkedin={advocate.linkedin}
-              onCompose={() => handleCompose(advocate)}
+              linkedin={employee.linkedin_url}
+              onCompose={() => handleCompose(employee)}
               onSendEmail={handleSendEmail}
               AIEmail={AIEmail}
               isLoadingEmail={isLoadingEmail}
