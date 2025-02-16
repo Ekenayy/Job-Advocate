@@ -4,7 +4,7 @@ import { CreateEmailSchemaType, EmailRequestSchemaType } from '../schemas/email.
 import { SendEmailInput } from '../types/email.types';
 import { sendEmail } from '../services/emailService';
 import { GenerateAIEmailType } from '../schemas/email.schema';
-import { emailAgent } from '../functions/AIAgentEmailManager';
+import AIAgentPlatformManager from '../functions/AIAgentPlatformManager';
 
 export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateEmailSchemaType }>, reply: FastifyReply) => {
   
@@ -106,7 +106,7 @@ export const generateEmailHandler = async (request: FastifyRequest<{ Body: Gener
   const { companyBackground, personBackground, myQualifications, jobRequirements } = request.body;
 
   try {
-    const responseAI = await emailAgent(companyBackground, personBackground, myQualifications, jobRequirements);
+    const responseAI = await AIAgentPlatformManager.emailAgent(companyBackground, personBackground, myQualifications, jobRequirements);
 
 
     return reply.status(200).send( responseAI );
