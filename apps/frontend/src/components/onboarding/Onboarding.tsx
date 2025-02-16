@@ -35,8 +35,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
         if (!response.ok) {
           throw new Error('Failed to onboard');
         }
+
+        const data = await response.json();
         
-        console.log('response:', response);
+        console.log('data:', data);
         
       } catch (error) {
         console.error('Error onboarding:', error);
