@@ -7,19 +7,27 @@ interface OnboardingProps {
 }
 
 export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [jobTitle, setJobTitle] = useState('');
   const [resume, setResume] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = async () => {
     if (currentStep === 0) {
+      setIsLoading(true);
+
+      if (!resume) {
+        setError('Please upload a resume');
+        setIsLoading(false);
+        return;
+      }
+      
       const formData = new FormData();
 
       formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad');
       formData.append('jobTitle', jobTitle);
-      if (resume) {
-        formData.append('resume', resume);
-      }
+      formData.append('resume', resume);
 
       // Save the data
       // chrome.storage.local.set({
@@ -35,18 +43,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
           body: formData
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to onboard');
-        }
+        const resumeResponse = await response.json();
 
-        const data = await response.json();
-        
-        console.log('data:', data);
-        
+        console.log('resumeResponse:', resumeResponse);
+        setIsLoading(false);
+        setCurrentStep(currentStep + 1);
       } catch (error) {
         console.error('Error onboarding:', error);
+        setError('Failed to upload resume');
+        setIsLoading(false);
       }
-
 
     } else if (currentStep === 1) {
       setIsOnboardingComplete(true);
@@ -67,6 +73,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       setJobTitle={setJobTitle}
       resume={resume}
       setResume={setResume}
+      error={error}
+      isLoading={isLoading}
     />,
     <ThirdStep 
       onNext={handleNext}

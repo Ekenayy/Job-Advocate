@@ -14,9 +14,9 @@ const ThirdStep: React.FC<ThirdStepProps> = ({ onNext }) => {
       <p className="text-gray-600">Here's how it works:</p>
 
       <ol className="list-decimal pl-6 space-y-4">
-        <li className="text-gray-600">Visit any job posting</li>
-        <li className="text-gray-600">Select "Begin advocate outreach" and pick an advocate</li>
-        <li className="text-gray-600">Use AI to write and send a perfect intro email in seconds</li>
+        <li className="text-gray-600 font-bold">Visit any job posting</li>
+        <li className="text-gray-600 font-bold">Select "Begin advocate outreach" and pick an advocate</li>
+        <li className="text-gray-600 font-bold">Use AI to write and send a perfect intro email in seconds</li>
       </ol>
 
       <button

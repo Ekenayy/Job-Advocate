@@ -1,4 +1,5 @@
 import React from 'react';
+import { PropagateLoader } from 'react-spinners';
 
 interface SecondStepProps {
   onNext: () => void;
@@ -7,9 +8,11 @@ interface SecondStepProps {
   setJobTitle: (title: string) => void;
   resume: File | null;
   setResume: (file: File | null) => void;
+  error?: string | null;
+  isLoading?: boolean;
 }
 
-const SecondStep: React.FC<SecondStepProps> = ({ onNext, onBack, jobTitle, setJobTitle, resume, setResume }) => {
+const SecondStep: React.FC<SecondStepProps> = ({ onNext, onBack, jobTitle, setJobTitle, resume, setResume, error, isLoading }) => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -58,11 +61,12 @@ const SecondStep: React.FC<SecondStepProps> = ({ onNext, onBack, jobTitle, setJo
         </button>
         <button
           onClick={onNext}
-          disabled={!jobTitle}
+          disabled={isLoading || !resume}
           className="flex-1 p-2 bg-blue-600 text-white rounded-md disabled:bg-gray-300"
         >
-          Next
+          {isLoading ? <PropagateLoader color="#000000" size={10} /> : 'Next'}
         </button>
+        {error && <p className="text-red-500">{error}</p>}
       </div>
     </div>
   );
