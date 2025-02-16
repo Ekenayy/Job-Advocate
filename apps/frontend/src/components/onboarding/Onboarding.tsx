@@ -15,10 +15,17 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       const formData = new FormData();
       // formData.append('jobTitle', jobTitle);
       console.log('jobTitle:', jobTitle);
+
+      formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad');
+      formData.append('jobTitle', jobTitle);
       if (resume) {
         formData.append('resume', resume);
       }
-      formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad');
+
+      // Log all form data fields
+      for (const [key, value] of formData.entries()) {
+        console.log(`Form field - ${key}:`, value);
+      }
       // Save the data
       // chrome.storage.local.set({
       //   jobTitle,
