@@ -128,7 +128,7 @@ export const searchDomainEmployees = async (
           email: prospect.emails.emails[0].email
         };
       })
-      .filter((employee): employee is Employee => employee !== null);
+      .filter((employee: Employee | null): employee is Employee => employee !== null);
 
     if (employees.length === 0) {
       throw new Error('No valid employees found with all required fields');
