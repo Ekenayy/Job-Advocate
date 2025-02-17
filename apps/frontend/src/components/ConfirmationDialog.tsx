@@ -36,7 +36,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
       }
       
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/hunter/search?domain=${jobInfo.domain}&jobTitle=${jobInfo.jobTitle}`
+        `${import.meta.env.VITE_BACKEND_URL}/snov/search?domain=${jobInfo.domain}&jobTitle=${jobInfo.jobTitle}`
       );
       
       if (!response.ok) throw new Error('Failed to fetch employees');
