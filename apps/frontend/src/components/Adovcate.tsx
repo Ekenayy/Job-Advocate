@@ -15,7 +15,7 @@ interface AdvocateProps {
   isLoading: boolean;
   isLoadingEmail: boolean;
   onCompose: () => void;
-  onSendEmail: () => void;
+  onSendEmail: (e: React.FormEvent<HTMLFormElement>) => void;
   AIEmail: { subject: string; body: string } | null;
 }
 
