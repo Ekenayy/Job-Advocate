@@ -53,6 +53,7 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           onChange={(e) => setEmailSubject(e.target.value)}
           placeholder="Your Subject here.."
           className="w-full p-2 border rounded-md bg-white"
+          autoCorrect="on"
           minRows={1}
         />}
         {isLoadingEmail ? <Skeleton className="w-full p-2 rounded-md border h-[500px]"  /> : <TextareaAutosize
