@@ -10,6 +10,7 @@ interface Employee {
   seniority: string;
   email: string;
   linkedin_url?: string;
+  id: string;
 }
 
 const ContentApp: React.FC = () => {
