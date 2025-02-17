@@ -2,15 +2,18 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import registerRoutes from './router';
-// import { swaggerSetup } from './middleware/swagger';
+import { swaggerSetup } from './middleware/swagger';
+import multipart from '@fastify/multipart';
 
 const fastify = Fastify({
   logger: true,
 });
 
-// swaggerSetup(fastify);
+swaggerSetup(fastify);
 fastify.register(cors, { origin: '*' });
 fastify.register(helmet);
+fastify.register(multipart);
+
 await registerRoutes(fastify);
 
 fastify.get('/api/health', async (request, reply) => {
