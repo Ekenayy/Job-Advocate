@@ -11,7 +11,13 @@ interface Prospect {
   last_name: string;
   position: string;
   source_page: string;
-  search_emails_start: string;
+  emails: {
+    searching_date: string;
+    emails: Array<{
+      email: string;
+      smtp_status: string;
+    }>;
+  };
 }
 
 export const searchDomainEmployees = async (
@@ -105,50 +111,31 @@ export const searchDomainEmployees = async (
     // Add this right after getting prospectsResult
     console.log("Sample prospect with emails:", JSON.stringify(prospectsResult.data[0], null, 2));
 
-    const employees = await Promise.all(
-      prospectsResult.data.map(async (prospect: Prospect) => {
-        try {
-          // Start email search
-          const emailSearchResponse = await fetch(prospect.search_emails_start, {
-            method: 'POST',
-            headers: { 
-              'Authorization': `Bearer ${tokenData.access_token}` 
-            }
-          });
-
-          const emailSearchData = await emailSearchResponse.json();
-          
-          // Poll for results
-          const emailResult = await pollForResults(emailSearchData.links.result, tokenData.access_token);
-
-          // Get the email from results
-          const email = emailResult.data.emails?.[0]?.email;
-          if (!email) return null;
-
-          // Return simple employee object
-          return {
-            first_name: prospect.first_name,
-            last_name: prospect.last_name,
-            position: prospect.position,
-            source_page: prospect.source_page,
-            email: email
-          };
-        } catch (error) {
-          console.error('Error getting email for prospect:', error);
+    const employees = prospectsResult.data
+      .map((prospect: Prospect) => {
+        // Check if we have an email
+        if (!prospect.emails?.emails?.[0]?.email) {
+          console.log('No email found for prospect:', prospect.first_name);
           return null;
         }
+
+        // Return employee with the first email
+        return {
+          first_name: prospect.first_name,
+          last_name: prospect.last_name,
+          position: prospect.position,
+          source_page: prospect.source_page,
+          email: prospect.emails.emails[0].email
+        };
       })
-    );
+      .filter((employee): employee is Employee => employee !== null);
 
-    const validEmployees = employees.filter((employee): employee is Employee => employee !== null);
-
-    // Ensure we have at least one valid employee
-    if (validEmployees.length === 0) {
+    if (employees.length === 0) {
       throw new Error('No valid employees found with all required fields');
     }
 
-    console.log("Successfully mapped employees:", validEmployees.length);
-    return validEmployees;
+    console.log("Successfully mapped employees:", employees.length);
+    return employees;
   } catch (error) {
     console.error("Detailed error in searchDomainEmployees:", error);
     throw error;
