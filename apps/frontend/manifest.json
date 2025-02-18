@@ -2,6 +2,13 @@
   "manifest_version": 3,
   "name": "Job Advocate Chrome Extension",
   "version": "1.0.0",
+  "host_permissions": [
+    "http://localhost/",
+    "ws://localhost/"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/"
+  },
   "action": { 
     "default_title": "Side Panel",
     "default_icon": "src/assets/favicon.svg"
