@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 interface Employee {
   first_name: string;
   last_name: string;
@@ -111,31 +113,58 @@ export const searchDomainEmployees = async (
     // Add this right after getting prospectsResult
     console.log("Sample prospect with emails:", JSON.stringify(prospectsResult.data[0], null, 2));
 
-    const employees = prospectsResult.data
-      .map((prospect: Prospect) => {
-        // Check if we have an email
-        if (!prospect.emails?.emails?.[0]?.email) {
-          console.log('No email found for prospect:', prospect.first_name);
-          return null;
+    const getProspectEmails = async (prospect: any): Promise<Employee | null> => {
+      try {
+        // Case 1: Direct emails object
+        if (prospect.emails?.emails?.[0]?.email) {
+          return {
+            first_name: prospect.first_name,
+            last_name: prospect.last_name,
+            position: prospect.position,
+            source_page: prospect.source_page,
+            email: prospect.emails.emails[0].email
+          };
         }
+        
+        // Case 2: Need to fetch emails via search_emails_start URL
+        if (prospect.search_emails_start) {
+          // Make POST request to initiate email search
+          const searchResponse = await axios.post(prospect.search_emails_start, {}, {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` }
+          });
+          
+          // Poll the result URL until we get emails
+          const resultUrl = searchResponse.data.links.result;
+          const emailResult = await pollForResults(resultUrl, tokenData.access_token);
+          
+          if (emailResult?.data?.emails?.[0]?.email) {
+            return {
+              first_name: prospect.first_name,
+              last_name: prospect.last_name,
+              position: prospect.position,
+              source_page: prospect.source_page,
+              email: emailResult.data.emails[0].email
+            };
+          }
+        }
+        
+        return null; // No valid email found
+      } catch (error) {
+        console.error(`Error fetching emails for prospect ${prospect.first_name}:`, error);
+        return null;
+      }
+    };
 
-        // Return employee with the first email
-        return {
-          first_name: prospect.first_name,
-          last_name: prospect.last_name,
-          position: prospect.position,
-          source_page: prospect.source_page,
-          email: prospect.emails.emails[0].email
-        };
-      })
-      .filter((employee: Employee | null): employee is Employee => employee !== null);
-
+    // Process all prospects in parallel
+    const employeePromises = prospectsResult.data.map(getProspectEmails);
+    const employees = await Promise.all(employeePromises);
+    
     if (employees.length === 0) {
       throw new Error('No valid employees found with all required fields');
     }
 
     console.log("Successfully mapped employees:", employees.length);
-    return employees;
+    return employees.filter((emp): emp is Employee => emp !== null);
   } catch (error) {
     console.error("Detailed error in searchDomainEmployees:", error);
     throw error;
