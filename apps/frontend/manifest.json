@@ -19,7 +19,8 @@
   "permissions": [
     "sidePanel",
     "identity",
-    "identity.email"
+    "identity.email",
+    "storage"
   ],
   "oauth2": {
     "client_id": "807605227538-58ddgsc8s8prmso6e8laaddp8q949hvg.apps.googleusercontent.com",
