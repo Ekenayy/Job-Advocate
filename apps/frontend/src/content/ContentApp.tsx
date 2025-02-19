@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import Advocate from "../components/Adovcate";
+import Advocate from "../components/Advocate";
 import { Onboarding } from "../components/onboarding/Onboarding";
+import { GmailService } from "../services/gmailService";
 
 interface Advocate {
   id: number;
