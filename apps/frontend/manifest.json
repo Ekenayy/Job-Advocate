@@ -22,7 +22,7 @@
     "identity.email"
   ],
   "oauth2": {
-    "client_id": "807605227538-jk8evfssuhc1oc3olon59320erm13bb8.apps.googleusercontent.com.apps.googleusercontent.com",
+    "client_id": "807605227538-58ddgsc8s8prmso6e8laaddp8q949hvg.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/gmail.send"
     ]
