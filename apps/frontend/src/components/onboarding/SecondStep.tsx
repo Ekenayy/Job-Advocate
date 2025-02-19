@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PropagateLoader } from 'react-spinners';
 import { GmailService } from '../../services/gmailService';
 
@@ -15,6 +15,15 @@ interface SecondStepProps {
 const SecondStep: React.FC<SecondStepProps> = ({ onNext, jobTitle, setJobTitle, resume, setResume, error, isLoading }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const gmailService = GmailService.getInstance();
+      const isAuthed = await gmailService.isAuthenticated();
+      setIsAuthenticated(isAuthed);
+    };
+    checkAuth();
+  }, []);
 
   const handleGmailAuth = async () => {
     setIsAuthenticating(true);

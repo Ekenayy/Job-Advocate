@@ -55,7 +55,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       }
 
     } else if (currentStep === 1) {
-      setIsOnboardingComplete(true);
+      console.log('chrome.storage', chrome.storage);
+      chrome.storage.local.set({
+        isOnboardingComplete: true
+      }, () => {
+        setIsOnboardingComplete(true);
+      });
     } else {
       setCurrentStep(currentStep + 1);
     }
