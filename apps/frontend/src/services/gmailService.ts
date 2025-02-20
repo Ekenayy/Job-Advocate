@@ -104,41 +104,82 @@ export class GmailService {
     });
   }
 
-  async sendEmail(to: string, subject: string, body: string): Promise<void> {
-    if (!this.accessToken) {
-      await this.authenticate();
-    }
+  async sendEmail(
+    to: string,
+    subject: string,
+    body: string,
+    displayName?: string
+  ): Promise<void> {
+    try {
+      if (!this.accessToken) {
+        await this.authenticate();
+      }
 
-    const message = {
-      raw: this.createEmailRaw(to, subject, body)
-    };
+      const emailContent = await this.createEmailRaw(
+        to,
+        subject,
+        body,
+        displayName
+      );
 
-    const response = await fetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(message)
-    });
+      // Convert Unicode string to UTF-8 bytes, then to base64
+      const encodedEmail = btoa(
+        new TextEncoder().encode(emailContent)
+          .reduce((str, byte) => str + String.fromCharCode(byte), '')
+      )
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
 
-    if (!response.ok) {
-      throw new Error('Failed to send email');
+      const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          raw: encodedEmail
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to send email: ${response.statusText}`);
+      }
+    } catch (error) {
+      if (error instanceof Error && (error.message.includes('token expired') || error.message.includes('invalid credentials'))) {
+        this.accessToken = null;
+        await this.authenticate();
+        return this.sendEmail(to, subject, body, displayName);
+      }
+      throw error;
     }
   }
 
-  private createEmailRaw(to: string, subject: string, body: string): string {
+  private async createEmailRaw(to: string, subject: string, body: string, displayName?: string): Promise<string> {
+    // Get user info from Chrome identity
+    const userInfo = await new Promise<chrome.identity.UserInfo>((resolve, reject) => {
+      chrome.identity.getProfileUserInfo((userInfo) => {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+          return;
+        }
+        resolve(userInfo);
+      });
+    });
+
+    const fromField = displayName 
+      ? `From: ${displayName} <${userInfo.email}>\n`
+      : `From: ${userInfo.email}\n`;
+
     const email = [
       'Content-Type: text/plain; charset="UTF-8"\n',
       'MIME-Version: 1.0\n',
+      fromField,
       `To: ${to}\n`,
       `Subject: ${subject}\n\n`,
       body
     ].join('');
 
-    return btoa(email)
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
+    return email;
   }
 }
