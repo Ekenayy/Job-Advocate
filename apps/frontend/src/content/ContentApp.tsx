@@ -69,7 +69,7 @@ const ContentApp: React.FC = () => {
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
-  const [error, setError] = useState<string | Error | null>(null);
+  const [_error, setError] = useState<string | Error | null>(null);
 
   const { contextResume } = useUser();
 
@@ -172,8 +172,6 @@ const ContentApp: React.FC = () => {
       </div>
     )
   }
-
-  console.log('emailedAdvocates:', emailedAdvocates);
 
   return (
     <div className="p-4 max-w-md">
