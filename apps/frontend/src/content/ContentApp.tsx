@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Advocate from "../components/Advocate";
 import { Onboarding } from "../components/onboarding/Onboarding";
 import { GmailService } from '../services/gmailService';
+import { useUser } from '../context/UserProvder';
 
 interface Advocate {
   id: number;
@@ -58,6 +59,8 @@ const ContentApp: React.FC = () => {
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [error, setError] = useState<string | Error | null>(null);
+
+  const { setResume } = useUser();
 
   useEffect(() => {
     if (chrome.storage) {
@@ -118,15 +121,6 @@ const ContentApp: React.FC = () => {
 
     setIsLoading(true);
 
-    // const formBody = {
-    //   user_id: "86318221-2f8e-43e2-822c-2d76e94b7aad",
-    //   advocate_id: selectedAdvocate.id,
-    //   subject: subject,
-    //   email_body: content, 
-    //   to_email: "ekenayy@gmail.com",
-    //   status:"pending"
-    // };
-
     try {
       const gmailService = GmailService.getInstance();
       await gmailService.sendEmail(
@@ -141,38 +135,12 @@ const ContentApp: React.FC = () => {
       setIsLoading(false);
       setSelectedAdvocate(null);
       
-      // Optional: Show success message to user
-      // You can add a toast or notification here
     } catch (error) {
       console.error("Error sending email:", error);
       setError("There was an error sending the email. Please try again.");
       setIsLoading(false);
-      // Optional: Show error message to user
-      // You can add a toast or notification here
     }
     
-    // try {
-    //   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email`, {
-    //     method: 'POST',
-    //     body: JSON.stringify(formBody),
-    //     headers: {
-    //       'Content-Type': 'application/json'
-    //     }
-    //   });
-
-    //   if (!response.ok) {
-    //     throw new Error("Failed to send email");
-    //   }
-
-    //   console.log("Email sent successfully");
-    //   const data = await response.json();
-    //   console.log('response data:', data);
-    //   setIsLoading(false);
-    //   setSelectedAdvocate(null);
-    // } catch (error) {
-    //   console.error("Error sending email:", error);
-    //   setIsLoading(false);
-    // } 
   };
 
   if (!isOnboardingComplete) {
