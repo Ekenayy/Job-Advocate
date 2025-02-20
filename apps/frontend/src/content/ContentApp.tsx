@@ -13,7 +13,6 @@ interface Advocate {
   linkedin?: string | undefined;
 }
 
-
 const advocates = [
   {
     id: 1,
