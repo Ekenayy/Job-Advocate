@@ -3,6 +3,7 @@ import Advocate from "../components/Advocate";
 import { Onboarding } from "../components/onboarding/Onboarding";
 import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
+
 interface Advocate {
   id: number;
   name: string;
@@ -82,11 +83,19 @@ const ContentApp: React.FC = () => {
         },
         body: JSON.stringify({
           companyBackground: testBackground.companyBackground,
-          personBackground: testBackground.personBackground,
-          myQualifications: testBackground.myQualifications,
+          personBackground: typeof contextResume?.parsed_data.Summary === 'string' 
+            ? { summary: contextResume?.parsed_data.Summary } 
+            : contextResume?.parsed_data.Summary || {},
+          myQualifications: {
+            skills: contextResume?.parsed_data.Skills || [],
+            experience: contextResume?.parsed_data.Experience || [],
+            education: contextResume?.parsed_data.Education || []
+          },
           jobRequirements: testBackground.jobRequirements
         })
       });
+
+      console.log('formBody')
   
       if (!response.ok) {
         throw new Error('Failed to generate email');

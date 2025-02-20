@@ -36,10 +36,19 @@ export const EmailRequestSchema = Type.Object({
 
 export type EmailRequestSchemaType = Static<typeof EmailRequestSchema>;
 
+const QualificationsSchema = Type.Object({
+  skills: Type.Optional(Type.Array(Type.String())),
+  experience: Type.Optional(Type.Array(Type.Object({}))),
+  education: Type.Optional(Type.Array(Type.Object({}))),
+});
+
 export const GenerateAIEmailSchema = Type.Object({
   companyBackground: Type.Optional(Type.String()),
-  personBackground: Type.Optional(Type.String()),
-  myQualifications: Type.Optional(Type.String()),
+  personBackground: Type.Optional(Type.Union([
+    Type.String(),
+    Type.Object({})
+  ])),
+  myQualifications: Type.Optional(QualificationsSchema),
   jobRequirements: Type.Optional(Type.String())
 });
 

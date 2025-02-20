@@ -3,9 +3,13 @@ import {PromptTemplate } from "@langchain/core/prompts";
 import { API_KEY_OPENAI } from '../constants';
 
 const emailAgent = async (
-  companyBackground: string | undefined, 
-  personBackground: string | undefined, 
-  myQualifications: string | undefined, 
+  companyBackground: string | undefined,
+  personBackground: Record<string, unknown> | undefined,
+  myQualifications: {
+    skills?: string[];
+    experience?: Record<string, unknown>[];
+    education?: Record<string, unknown>[];
+  } | undefined,
   jobRequirements: string | undefined
 ) => {   
   // Provide default values for undefined inputs
@@ -26,18 +30,42 @@ const emailAgent = async (
   
   I want you to respond with an email subject and an email body as a JSON object.
   
-  Company Background: {company_background}
-  Person Background: {person_background}
-  My Qualifications: {qualifications}
-  Job Requirements: {job_requirements}`;
+  Company Background: {background}
+  Person Background: {person}
+
+  My Qualifications:
+  Skills: {quals_skills}
+  Recent Experience: {quals_exp}
+  Education: {quals_edu}
+
+  Job Requirements: {requirements}
+
+  Guidelines:
+  1. Use my most relevant skills that match the job requirements
+  2. Reference my most recent and relevant experience
+  3. Mention educational background if it's relevant to the role or company
+  4. Keep the tone professional but conversational
+  5. Focus on how my background aligns with their needs
+  6. Include a clear call to action (like a meeting request)
+
+  Response format:
+  {{
+    "subject": "Brief, personalized subject line",
+    "body": "Professional, concise email body"
+  }}`;
   
-    const promptTemplate = PromptTemplate.fromTemplate(template);
+    const promptTemplate = new PromptTemplate({
+      template,
+      inputVariables: ["background", "person", "quals_skills", "quals_exp", "quals_edu", "requirements"]
+    });
   
     const formattedPrompt = await promptTemplate.format({
-      company_background: safeCompanyBackground,
-      person_background: safePersonBackground,
-      qualifications: safeQualifications,
-      job_requirements: safeRequirements,
+      background: safeCompanyBackground,
+      person: JSON.stringify(safePersonBackground),
+      quals_skills: JSON.stringify(typeof safeQualifications === 'object' ? safeQualifications.skills : []),
+      quals_exp: JSON.stringify(typeof safeQualifications === 'object' ? safeQualifications.experience?.[0] : {}),
+      quals_edu: JSON.stringify(typeof safeQualifications === 'object' ? safeQualifications.education : []),
+      requirements: safeRequirements
     });
 
     const response = await llm.invoke(formattedPrompt);
@@ -59,6 +87,7 @@ const resumeAgent = async (resume: string) => {
 
   const template = `
   You are a helpful assistant that can help me scan a resume and extract the following information:
+    -Summary
     -Skills
     -Experience
     -Education
@@ -66,8 +95,13 @@ const resumeAgent = async (resume: string) => {
     -Certifications
     -Awards
     -Publications
+    -Languages
   
-  I want you to respond with the information as key/value pairs in a JSON object.
+    The summary is a section where a user-generated overview of short-term professionals goals. You do not need to generate a summary of the resume in your response. 
+
+    I want you to respond with the information as key/value pairs in a JSON object.
+    
+    If you cannot find the information, respond with an empty array for that section. Do not make up information.
   
   Resume: {resume}`;
 
