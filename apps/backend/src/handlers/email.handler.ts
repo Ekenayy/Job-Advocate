@@ -61,7 +61,7 @@ export const updateEmail = async (email_id: number, status: string, error_messag
 }
 
 export const generateEmailHandler = async (request: FastifyRequest<{ Body: GenerateAIEmailType }>, reply: FastifyReply) => {
-  const { companyBackground, personBackground, myQualifications, jobRequirements } = request.body;
+  const { companyBackground, personBackground, myQualifications, jobRequirements, advocateName, userName } = request.body;
 
   
   try {
@@ -69,10 +69,16 @@ export const generateEmailHandler = async (request: FastifyRequest<{ Body: Gener
       ? { text: personBackground } 
       : personBackground;
 
-    const responseAI = await AIAgentPlatformManager.emailAgent(companyBackground, personBackgroundObj, myQualifications, jobRequirements);
+    const responseAI = await AIAgentPlatformManager.emailAgent(
+      companyBackground, 
+      personBackgroundObj, 
+      myQualifications, 
+      jobRequirements,
+      advocateName,
+      userName
+    );
 
-
-    return reply.status(200).send( responseAI );
+    return reply.status(200).send(responseAI);
   } catch (error) {
     console.error('Error generating email:', error);
     return reply.status(500).send({ error: 'Internal server error' });

@@ -49,7 +49,9 @@ export const GenerateAIEmailSchema = Type.Object({
     Type.Object({})
   ])),
   myQualifications: Type.Optional(QualificationsSchema),
-  jobRequirements: Type.Optional(Type.String())
+  jobRequirements: Type.Optional(Type.String()),
+  advocateName: Type.Optional(Type.String()),
+  userName: Type.Optional(Type.String())
 });
 
 export type GenerateAIEmailType = Static<typeof GenerateAIEmailSchema>;

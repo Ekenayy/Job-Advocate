@@ -10,13 +10,17 @@ const emailAgent = async (
     experience?: Record<string, unknown>[];
     education?: Record<string, unknown>[];
   } | undefined,
-  jobRequirements: string | undefined
+  jobRequirements: string | undefined,
+  advocateName: string | undefined,
+  userName: string | undefined
 ) => {   
   // Provide default values for undefined inputs
   const safeCompanyBackground = companyBackground || 'No company background provided';
   const safePersonBackground = personBackground || 'No person background provided';
   const safeQualifications = myQualifications || 'No qualifications provided';
   const safeRequirements = jobRequirements || 'No job requirements provided';
+  const safeAdvocateName = advocateName || '[Hiring Manager]';
+  const safeUserName = userName || '';
 
   const llm = new ChatOpenAI({
     modelName: "gpt-4o-mini",
@@ -28,7 +32,7 @@ const emailAgent = async (
   
   Keep the emails short and concise. They should be no longer than 130 words. 
   
-  I want you to respond with an email subject and an email body as a JSON object.
+  I want you to respond with an email subject and an email body as a JSON object. 
   
   Company Background: {background}
   Person Background: {person}
@@ -47,6 +51,9 @@ const emailAgent = async (
   4. Keep the tone professional but conversational
   5. Focus on how my background aligns with their needs
   6. Include a clear call to action (like a meeting request)
+  7. Address the email to {advocateName}
+  8. If available, use the {advocateName} in the subject line of the email
+  9. If available, sign off with {userName} in the body of the email
 
   Response format:
   {{
@@ -56,7 +63,7 @@ const emailAgent = async (
   
     const promptTemplate = new PromptTemplate({
       template,
-      inputVariables: ["background", "person", "quals_skills", "quals_exp", "quals_edu", "requirements"]
+      inputVariables: ["background", "person", "quals_skills", "quals_exp", "quals_edu", "requirements", "advocateName", "userName"]
     });
   
     const formattedPrompt = await promptTemplate.format({
@@ -65,7 +72,9 @@ const emailAgent = async (
       quals_skills: JSON.stringify(typeof safeQualifications === 'object' ? safeQualifications.skills : []),
       quals_exp: JSON.stringify(typeof safeQualifications === 'object' ? safeQualifications.experience?.[0] : {}),
       quals_edu: JSON.stringify(typeof safeQualifications === 'object' ? safeQualifications.education : []),
-      requirements: safeRequirements
+      requirements: safeRequirements,
+      advocateName: safeAdvocateName,
+      userName: safeUserName
     });
 
     const response = await llm.invoke(formattedPrompt);

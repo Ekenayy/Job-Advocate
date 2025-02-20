@@ -44,10 +44,21 @@ const advocates = [
 ];
 
 const testBackground = 	{
-  "companyBackground": "Google is a global leader in technology and innovation, renowned for its transformative search engine, advertising platforms, and extensive suite of products and services. The company is committed to organizing the world's information and making it universally accessible and useful, while pushing the boundaries in areas like artificial intelligence, cloud computing, and quantum research. Google's culture of innovation, openness, and continuous learning empowers its teams to tackle some of the world's most challenging problems.",
+  "companyBackground": "Soda Health is a healthcare technology company focused on building solutions which eliminate health inequities and create a healthier America.  We provide a technology platform to administer benefits personalized to individual needs, delivered more cost-effectively.  Our expertise in healthcare, retail and consumer experience provides us with the foundation for creating easy-to-use solutions with an experience which moves beyond transactional relationships to sustained engagement and overall health improvement.  That is a win for everyone. Soda Health is a Series B stage company, backed by leading investors including Define Ventures, General Catalyst, Lightspeed Venture Partners, Pinegrove Capital Partners, and Qiming Venture Partners.",
   "personBackground": "I am an experienced product manager with a strong passion for technology and user-centered design. Over the years, I have successfully led cross-functional teams to launch and scale innovative products in fast-paced environments. My background combines a deep understanding of market dynamics with technical acumen, enabling me to bridge the gap between business strategy and engineering execution.",
   "myQualifications": "With over 8 years of product management experience, I have honed my skills in market research, agile development, and data-driven decision-making. I have a proven track record of managing the full product lifecycle, from ideation to launch and iteration. My ability to collaborate effectively with engineering, design, and marketing teams has resulted in the successful delivery of high-impact products. Additionally, my analytical mindset and strategic vision have been key in driving product innovation and growth.",
-  "jobRequirements": "The ideal candidate for the Product Manager role at Google should be a visionary leader with a strong grasp of technology trends and a passion for creating user-centric products. Key requirements include exceptional communication skills, experience in agile methodologies, and a demonstrated ability to translate complex problems into actionable product strategies. The role demands proficiency in data analysis, stakeholder management, and the ability to thrive in a dynamic, fast-paced environment while fostering cross-functional collaboration."
+  "jobRequirements": `While every candidate brings a unique resume and prospective, an ideal candidate will include: 5-15 years software engineering experience
+Refined ability to present and demo your work so others can understand it
+Robust experience working in a full-stack environment where the backend is strongly typed (we use golang)
+Experience in browser tech (HTML, CSS, JavaScript)
+Desire to build end-to-end, from business logic to presentation (we use HTMX/templ)
+Comfort with container technology (Docker or similar)
+Heads-up awareness of production applications with effective monitoring, logging, and observability of the full application stack.
+Confidence and ability to provide supportive and critical feedback in PR reviews to make the code better for everyone
+Enthusiasm for writing efficient tests that produce tight feedback loops
+Passion to take ownership, collaborate, and solve problems for real, everyday people
+Technical and cultural leader who encourages these traits in the people around them
+Bachelor’s degree or similar experience strongly preferred`
 }
 
 
@@ -82,6 +93,8 @@ const ContentApp: React.FC = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          userName: "Kevlin",
+          advocateName: advocate.name,
           companyBackground: testBackground.companyBackground,
           personBackground: typeof contextResume?.parsed_data.Summary === 'string' 
             ? { summary: contextResume?.parsed_data.Summary } 
@@ -111,7 +124,6 @@ const ContentApp: React.FC = () => {
       setIsLoadingEmail(false);
     }
     
-
   };
 
   const handleClose = () => {
