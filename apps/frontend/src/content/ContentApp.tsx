@@ -3,7 +3,6 @@ import Advocate from "../components/Advocate";
 import { Onboarding } from "../components/onboarding/Onboarding";
 import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
-
 interface Advocate {
   id: number;
   name: string;
@@ -60,7 +59,7 @@ const ContentApp: React.FC = () => {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [error, setError] = useState<string | Error | null>(null);
 
-  const { setResume } = useUser();
+  const { contextResume } = useUser();
 
   useEffect(() => {
     if (chrome.storage) {
@@ -69,6 +68,8 @@ const ContentApp: React.FC = () => {
       });
     }
   }, []);
+
+  console.log('contextResume:', contextResume);
 
   const handleCompose = async (advocate: Advocate) => {
     setSelectedAdvocate(advocate);

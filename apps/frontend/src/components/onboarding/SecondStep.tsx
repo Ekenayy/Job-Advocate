@@ -6,13 +6,13 @@ interface SecondStepProps {
   onNext: () => void;
   jobTitle: string;
   setJobTitle: (title: string) => void;
-  resume: File | null;
-  setResume: (file: File | null) => void;
+  resumeFile: File | null;
+  setResumeFile: (file: File | null) => void;
   error?: string | null;
   isLoading?: boolean;
 }
 
-const SecondStep: React.FC<SecondStepProps> = ({ onNext, jobTitle, setJobTitle, resume, setResume, error, isLoading }) => {
+const SecondStep: React.FC<SecondStepProps> = ({ onNext, jobTitle, setJobTitle, resumeFile, setResumeFile, error, isLoading }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -41,7 +41,7 @@ const SecondStep: React.FC<SecondStepProps> = ({ onNext, jobTitle, setJobTitle, 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setResume(e.target.files[0]);
+      setResumeFile(e.target.files[0]);
     }
   };
 
@@ -96,7 +96,7 @@ const SecondStep: React.FC<SecondStepProps> = ({ onNext, jobTitle, setJobTitle, 
             accept=".pdf,.doc,.docx"
             className="hidden"
           />
-          {resume ? resume.name : 'Upload Resume'}
+          {resumeFile ? resumeFile.name : 'Upload Resume'}
         </label>
       </div>
 

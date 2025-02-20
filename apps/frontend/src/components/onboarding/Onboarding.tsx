@@ -1,7 +1,7 @@
 import { useState } from "react";
 import SecondStep from "./SecondStep";
 import ThirdStep from "./ThirdStep";
-
+import { useUser } from "../../context/UserProvder";
 interface OnboardingProps {
     setIsOnboardingComplete: (isOnboardingComplete: boolean) => void;
 }
@@ -9,15 +9,17 @@ interface OnboardingProps {
 export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [jobTitle, setJobTitle] = useState('');
-  const [resume, setResume] = useState<File | null>(null);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { setResume } = useUser();
 
   const handleNext = async () => {
     if (currentStep === 0) {
       setIsLoading(true);
 
-      if (!resume) {
+      if (!resumeFile) {
         setError('Please upload a resume');
         setIsLoading(false);
         return;
@@ -27,15 +29,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
 
       formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad');
       formData.append('jobTitle', jobTitle);
-      formData.append('resume', resume);
-
-      // Save the data
-      // chrome.storage.local.set({
-      //   jobTitle,
-      //   resume: resume ? resume.name : null
-      // }, () => {
-      //   // setCurrentStep(currentStep + 1);
-      // });
+      formData.append('resume', resumeFile);
 
       try {
         const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/resume`, {
@@ -46,6 +40,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
         const resumeResponse = await response.json();
 
         console.log('resumeResponse:', resumeResponse);
+        setResume(resumeResponse);
         setIsLoading(false);
         setCurrentStep(currentStep + 1);
       } catch (error) {
@@ -55,7 +50,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       }
 
     } else if (currentStep === 1) {
-      console.log('chrome.storage', chrome.storage);
       chrome.storage.local.set({
         isOnboardingComplete: true
       }, () => {
@@ -71,8 +65,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       onNext={handleNext}
       jobTitle={jobTitle}
       setJobTitle={setJobTitle}
-      resume={resume}
-      setResume={setResume}
+      resumeFile={resumeFile}
+      setResumeFile={setResumeFile}
       error={error}
       isLoading={isLoading}
     />,
