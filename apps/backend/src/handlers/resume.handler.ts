@@ -15,13 +15,6 @@ export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply
 
   user_id = (file.fields.user_id as any)?.value;
 
-  console.log('user_id:', user_id);
-  console.log('file:', {
-    filename: file.filename,
-    mimetype: file.mimetype
-  });
-
-
   const buffer = await file.toBuffer();
   const blob = new Blob([buffer], { type: file.mimetype });
 
