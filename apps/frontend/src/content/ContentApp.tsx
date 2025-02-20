@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Advocate from "../components/Advocate";
 import { Onboarding } from "../components/onboarding/Onboarding";
+import { GmailService } from '../services/gmailService';
 
 interface Advocate {
   id: number;
   name: string;
   title: string;
   company: string;
+  email: string;
   initials: string; 
   linkedin?: string | undefined;
 }
@@ -18,22 +20,25 @@ const advocates = [
     name: "Elon Jobs",
     title: "Founder & CEO",
     company: "Decagon",
+    email: "ekene@joifulhealth.io",
     initials: "EJ",
     linkedin: "https://www.linkedin.com/in/elon-jobs/"
   },
   {
-    id: 1,
+    id: 2,
     name: "David Mai",
     title: "Director of Product",
     company: "Decagon",
+    email: "ekene@joifulhealth.io",
     initials: "DM",
     linkedin: "https://www.linkedin.com/in/elon-jobs/"
   },
   {
-    id: 1,
+    id: 3,
     name: "Sean Joe",
     title: "Product Manager",
     company: "Decagon",
+    email: "ekene@joifulhealth.io",
     initials: "SJ"
   }
 ];
@@ -48,10 +53,12 @@ const testBackground = 	{
 
 const ContentApp: React.FC = () => {
   const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
+  const [emailedAdvocates, setEmailedAdvocates] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [error, setError] = useState<string | Error | null>(null);
 
   useEffect(() => {
     if (chrome.storage) {
@@ -112,37 +119,61 @@ const ContentApp: React.FC = () => {
 
     setIsLoading(true);
 
-    const formBody = {
-      user_id: "86318221-2f8e-43e2-822c-2d76e94b7aad",
-      advocate_id: selectedAdvocate.id,
-      subject: subject,
-      email_body: content, 
-      to_email: "ekenayy@gmail.com",
-      status:"pending"
-    };
-    
+    // const formBody = {
+    //   user_id: "86318221-2f8e-43e2-822c-2d76e94b7aad",
+    //   advocate_id: selectedAdvocate.id,
+    //   subject: subject,
+    //   email_body: content, 
+    //   to_email: "ekenayy@gmail.com",
+    //   status:"pending"
+    // };
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email`, {
-        method: 'POST',
-        body: JSON.stringify(formBody),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const gmailService = GmailService.getInstance();
+      await gmailService.sendEmail(
+        `${selectedAdvocate.name} <${selectedAdvocate.email || 'advocate@example.com'}>`,
+        subject,
+        content,
+        "Ekene"
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to send email");
-      }
-
+      setEmailedAdvocates(prev => [...new Set([...prev, selectedAdvocate.id])]);
       console.log("Email sent successfully");
-      const data = await response.json();
-      console.log('response data:', data);
       setIsLoading(false);
       setSelectedAdvocate(null);
+      
+      // Optional: Show success message to user
+      // You can add a toast or notification here
     } catch (error) {
       console.error("Error sending email:", error);
+      setError("There was an error sending the email. Please try again.");
       setIsLoading(false);
-    } 
+      // Optional: Show error message to user
+      // You can add a toast or notification here
+    }
+    
+    // try {
+    //   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email`, {
+    //     method: 'POST',
+    //     body: JSON.stringify(formBody),
+    //     headers: {
+    //       'Content-Type': 'application/json'
+    //     }
+    //   });
+
+    //   if (!response.ok) {
+    //     throw new Error("Failed to send email");
+    //   }
+
+    //   console.log("Email sent successfully");
+    //   const data = await response.json();
+    //   console.log('response data:', data);
+    //   setIsLoading(false);
+    //   setSelectedAdvocate(null);
+    // } catch (error) {
+    //   console.error("Error sending email:", error);
+    //   setIsLoading(false);
+    // } 
   };
 
   if (!isOnboardingComplete) {
@@ -152,6 +183,8 @@ const ContentApp: React.FC = () => {
       </div>
     )
   }
+
+  console.log('emailedAdvocates:', emailedAdvocates);
 
   return (
     <div className="p-4 max-w-md">
@@ -164,10 +197,23 @@ const ContentApp: React.FC = () => {
         </button>
       </div>
       <div className="flex flex-col gap-14">
-        {advocates.map((advocate) => (
-          selectedAdvocate === null || selectedAdvocate === advocate ? (
+      {advocates.map((advocate) => {
+          if (emailedAdvocates.includes(advocate.id)) {
+            return (
+              <div key={advocate.id} className="bg-green-50 p-4 rounded-lg">
+                <p className="text-green-600 font-medium">
+                  Email sent successfully to {advocate.name} ✓
+                </p>
+                <p className="text-gray-600 mt-2 text-sm">
+                  We suggest waiting at least three days before continuing your outreach and follow ups.
+                </p>
+              </div>
+            );
+          }
+
+          return selectedAdvocate === null || selectedAdvocate === advocate ? (
             <Advocate
-              key={advocate.initials}
+              key={advocate.id}
               name={advocate.name}
               title={advocate.title}
               company={advocate.company}
@@ -180,8 +226,8 @@ const ContentApp: React.FC = () => {
               AIEmail={AIEmail}
               isLoadingEmail={isLoadingEmail}
             />
-          ) : null
-        ))}
+          ) : null;
+        })}
       </div>
     </div>
   );
