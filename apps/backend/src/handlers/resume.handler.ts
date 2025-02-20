@@ -3,8 +3,9 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
 import AIAgentPlatformManager from '../functions/AIAgentPlatformManager';
 import { supabase } from '../services/supabaseClient';
+import { Resume } from '../types/resume.types';
 
-export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<Resume> => {
   let user_id;
 
   const file = await request.file({limits: {fileSize: 10_000_000}}); // 10MB
@@ -33,11 +34,15 @@ export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply
       text = docs?.[0]?.pageContent || '';
     }
 
+    // Creates a JSON object from the resume
     const resumeData = await AIAgentPlatformManager.resumeAgent(text);
-    const resume = await createResume(resumeData, user_id, text);
+
     // Handle file upload and job title
-    // Store in your database/storage
-    return reply.status(200).send({ resume });
+    // Store in database/storage
+    const resume = await createResume(resumeData, user_id, text);
+
+    reply.status(200);
+    return resume;
   } catch (error) {
     console.error('Error handling onboarding:', error);
     return reply.status(500).send({ error: 'Internal server error' });
