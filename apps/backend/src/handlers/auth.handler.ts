@@ -13,7 +13,7 @@ export const webhookHandler = async (request: FastifyRequest, reply: FastifyRepl
     const { data, error } = await supabase
       .from('users')
       .insert({
-        id: id,
+        clerk_id: id,
         email: email_addresses[0]?.email_address,
         name: full_name,
         created_at: new Date().toISOString()
@@ -36,9 +36,10 @@ export const webhookHandler = async (request: FastifyRequest, reply: FastifyRepl
     const { data, error } = await supabase
       .from('users')
       .update({
-        name: full_name
+        name: full_name,
+        email: email_addresses[0]?.email_address
       })
-      .eq('id', id);
+      .eq('clerk_id', id);
 
     if (error) {
       console.error('Error updating user:', error);
@@ -54,7 +55,7 @@ export const webhookHandler = async (request: FastifyRequest, reply: FastifyRepl
     const { data, error } = await supabase
       .from('users')
       .delete()
-      .eq('id', id);
+      .eq('clerk_id', id);
 
     if (error) {  
       console.error('Error deleting user:', error);
