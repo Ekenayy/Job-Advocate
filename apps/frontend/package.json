@@ -12,6 +12,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@clerk/chrome-extension": "^2.2.10",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@tailwindcss/postcss": "^4.0.0",
