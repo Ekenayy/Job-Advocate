@@ -39,7 +39,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
 
         const resumeResponse = await response.json();
 
-        console.log('resumeResponse:', resumeResponse);
+        if (resumeResponse.error) {
+          setError(resumeResponse.error);
+          setIsLoading(false);
+          return;
+        }
+
         setResume(resumeResponse);
         setIsLoading(false);
         setCurrentStep(currentStep + 1);

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import Advocate from "../components/Advocate";
-import { Onboarding } from "../components/onboarding/Onboarding";
 import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
 
@@ -66,18 +65,9 @@ const ContentApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [_error, setError] = useState<string | Error | null>(null);
 
   const { contextResume } = useUser();
-
-  useEffect(() => {
-    if (chrome.storage) {
-      chrome.storage.local.get('isOnboardingComplete', (result) => {
-        setIsOnboardingComplete(result.isOnboardingComplete || false);
-      });
-    }
-  }, []);
 
   const handleCompose = async (advocate: Advocate) => {
     setSelectedAdvocate(advocate);
@@ -159,13 +149,6 @@ const ContentApp: React.FC = () => {
     
   };
 
-  if (!isOnboardingComplete) {
-    return (
-      <div className="p-4">
-        <Onboarding setIsOnboardingComplete={setIsOnboardingComplete} />
-      </div>
-    )
-  }
 
   return (
     <div className="p-4 max-w-md">
