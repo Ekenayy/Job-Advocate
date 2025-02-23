@@ -7,7 +7,7 @@ export const Header = () => {
     <header className="flex justify-between items-center p-4 bg-white shadow-sm">
       <div className="flex items-center">
         {/* Add your logo or app name here */}
-        <h1 className="text-xl font-bold">Your App Name</h1>
+        <h1 className="text-xl font-bold">Job Advocate</h1>
       </div>
       
       <div>
