@@ -1,28 +1,19 @@
 import "./App.css";
-import ContentApp from "./content/ContentApp";
-import { Onboarding } from "./components/onboarding/Onboarding";
-import { useUser as useContextUser } from "./context/UserProvder";
-import { AuthWrapper } from "./components/auth/AuthWrapper";
+
 import { Header } from "./components/layout/Header";
-// import { MemoryRouter as Router } from "react-router-dom";
+import { Routes } from "react-router";
+import { routes, catchAllRoute } from "./routes";
 
 function App() {
-  const { isOnboardingComplete, completeOnboarding } = useContextUser();
-
+  const routeElements = routes();
+  
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <AuthWrapper>
-        <main className="flex-1">
-          {!isOnboardingComplete ? (
-            <div className="p-4">
-              <Onboarding setIsOnboardingComplete={completeOnboarding} />
-            </div>
-          ) : (
-            <ContentApp />
-          )}
-        </main>
-      </AuthWrapper>
+      <Routes>
+        {routeElements}
+        {catchAllRoute}
+      </Routes>
     </div>
   );
 }
