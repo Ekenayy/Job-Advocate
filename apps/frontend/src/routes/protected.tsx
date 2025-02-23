@@ -2,7 +2,6 @@ import { Route } from "react-router";
 import ContentApp from "../content/ContentApp";
 import { Onboarding } from "../components/onboarding/Onboarding";
 import { useUser as useContextUser } from "../context/UserProvder";
-import UpdateResume from "../components/layout/UpdateResume";
 
 function ProtectedContent() {
   const { isOnboardingComplete, completeOnboarding } = useContextUser();
