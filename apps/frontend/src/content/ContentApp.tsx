@@ -2,24 +2,22 @@ import React, { useState } from "react";
 import Advocate from "../components/Advocate";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { Onboarding } from "../components/onboarding/Onboarding";
-
-interface Employee {
-  first_name: string;
-  last_name: string;
-  position: string;
-  seniority: string;
-  email: string;
-  linkedin_url?: string;
-  id: string;
-}
+import { Employee } from "../types";
 
 const ContentApp: React.FC = () => {
+  const testBackground = {
+    companyBackground: "Company background here",
+    personBackground: "Person background here",
+    myQualifications: "Qualifications here",
+    jobRequirements: "Job requirements here"
+  };
+
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(true);
   const [showConfirmation, setShowConfirmation] = useState(true);
 
   const handleEmployeesFound = (employees: Employee[]) => {

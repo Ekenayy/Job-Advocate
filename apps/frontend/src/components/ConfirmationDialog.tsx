@@ -1,14 +1,6 @@
 import React, { useState } from 'react';
 import { PropagateLoader } from 'react-spinners';
-
-interface Employee {
-  first_name: string;
-  last_name: string;
-  position: string;
-  seniority: string;
-  email: string;
-  linkedin_url?: string;
-}
+import { Employee } from '../types';
 
 interface ConfirmationDialogProps {
   onClose: () => void;
