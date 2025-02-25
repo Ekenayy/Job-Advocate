@@ -33,11 +33,32 @@ export const extractJobInfoHandler = async (
     }
 
     const content = response.content[0];
-    if (!('value' in content)) {
-      throw new Error('Response missing value field');
+    
+    if (content.type === 'text') {
+      console.log("Text content received:", content.text);
+      // Try to parse the text as JSON
+      try {
+        const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const jsonStr = jsonMatch[0];
+          console.log("Extracted JSON string:", jsonStr);
+          const parsedJson = JSON.parse(jsonStr);
+          console.log("Successfully parsed JSON:", parsedJson);
+          return reply.send(parsedJson);
+        } else {
+          console.error("No JSON object found in text response");
+        }
+      } catch (parseError) {
+        console.error("Error parsing text as JSON:", parseError);
+      }
     }
-
-    return reply.send(content.value);
+    
+    // Handle value field format
+    if ('value' in content) {
+      return reply.send(content.value);
+    }
+    
+    throw new Error('Response format not recognized');
   } catch (error) {
     console.error("Error extracting job info:", error);
     return reply.status(500).send({ error: "Failed to extract job info" });
