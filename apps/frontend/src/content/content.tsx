@@ -89,7 +89,6 @@ const isJobSite = () => {
 
 // Function to extract job title based on the job site
 const extractJobInfo = async () => {
-  const currentUrl = window.location.href.toLowerCase();
   const currentDomain = window.location.hostname.replace("www.", "");
   const pageText = document.body.innerText;
 
