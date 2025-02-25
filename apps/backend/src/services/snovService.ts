@@ -128,15 +128,28 @@ export const searchDomainEmployees = async (
         
         // Case 2: Need to fetch emails via search_emails_start URL
         if (prospect.search_emails_start) {
+          console.log(`Fetching emails for ${prospect.first_name} ${prospect.last_name} using search_emails_start`);
+          
           // Make POST request to initiate email search
           const searchResponse = await axios.post(prospect.search_emails_start, {}, {
             headers: { Authorization: `Bearer ${tokenData.access_token}` }
           });
           
+          console.log(`Search email response for ${prospect.first_name}:`, searchResponse.data);
+          
+          // Check if we have a result URL
+          if (!searchResponse.data?.links?.result) {
+            console.log(`No result URL found for ${prospect.first_name}`);
+            return null;
+          }
+          
           // Poll the result URL until we get emails
           const resultUrl = searchResponse.data.links.result;
           const emailResult = await pollForResults(resultUrl, tokenData.access_token);
           
+          console.log(`Email result for ${prospect.first_name}:`, emailResult);
+          
+          // Check different possible response structures
           if (emailResult?.data?.emails?.[0]?.email) {
             return {
               first_name: prospect.first_name,
@@ -145,9 +158,18 @@ export const searchDomainEmployees = async (
               source_page: prospect.source_page,
               email: emailResult.data.emails[0].email
             };
+          } else if (emailResult?.emails?.[0]?.email) {
+            return {
+              first_name: prospect.first_name,
+              last_name: prospect.last_name,
+              position: prospect.position,
+              source_page: prospect.source_page,
+              email: emailResult.emails[0].email
+            };
           }
         }
         
+        console.log(`No valid email found for ${prospect.first_name} ${prospect.last_name}`);
         return null; // No valid email found
       } catch (error) {
         console.error(`Error fetching emails for prospect ${prospect.first_name}:`, error);

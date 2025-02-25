@@ -41,5 +41,8 @@
   "main": "eslint.config.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "overrides": {
+    "@browserbasehq/sdk": false
+  }
 }

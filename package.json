@@ -24,5 +24,8 @@
     "@anthropic-ai/sdk": "^0.37.0",
     "@fastify/multipart": "^9.0.3",
     "langchain": "^0.3.19"
+  },
+  "overrides": {
+    "@browserbasehq/sdk": false
   }
 }
