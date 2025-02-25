@@ -111,8 +111,7 @@ const extractJobInfo = async () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          pageContent: pageText.substring(0, 3000),
-          currentUrl: currentUrl
+          pageContent: pageText.substring(0, 3000)
         }),
       }
     );

@@ -14,12 +14,16 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
   const [error, setError] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(true);
   const [hasUserResponded, setHasUserResponded] = useState(false);
+  const [jobInfoLoading, setJobInfoLoading] = useState(false);
 
   const fetchEmployees = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
+      // First, set job info loading state
+      setJobInfoLoading(true);
+      
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       console.log("Current tab:", tab);
       
@@ -30,6 +34,9 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
       console.log("Sending GET_JOB_INFO message to tab:", tab.id);
       const jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
       
+      // Job info loaded
+      setJobInfoLoading(false);
+      
       console.log("Job info received:", jobInfo);
       
       if (!jobInfo) {
@@ -38,6 +45,11 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
       
       if (!jobInfo.isJobSite) {
         throw new Error('This page does not appear to be a job posting');
+      }
+      
+      // Check if we have a job title
+      if (!jobInfo.jobTitle) {
+        throw new Error('Could not extract job title from this page');
       }
       
       // Extract domain from URL if it's a full URL
@@ -50,6 +62,9 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
         console.error("Error parsing domain URL:", e);
       }
       
+      // Show what we're searching for
+      console.log(`Searching for employees with job title "${jobInfo.jobTitle}" at domain "${domain}"`);
+      
       const apiUrl = `${import.meta.env.VITE_BACKEND_URL}/snov/search?domain=${encodeURIComponent(domain)}&jobTitle=${encodeURIComponent(jobInfo.jobTitle || "")}`;
       console.log("Calling Snov API at:", apiUrl);
       
@@ -57,6 +72,11 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
       const response = await fetch(apiUrl);
       
       console.log("Snov response status:", response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Snov API error (${response.status}): ${errorText}`);
+      }
       
       // Try to get the response text first for debugging
       const responseText = await response.text();
@@ -75,6 +95,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
       setEmployees(data);
       onEmployeesFound(data);
     } catch (error) {
+      setJobInfoLoading(false);
       setError(error instanceof Error ? error.message : 'Failed to fetch employee information');
       console.error('Error:', error);
     } finally {
@@ -122,11 +143,37 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
       {isLoading && (
         <div className="text-center py-4">
           <PropagateLoader color="#000000" size={10} className="p-3" />
-          <p>Finding potential advocates...</p>
+          <p>
+            {jobInfoLoading 
+              ? "Analyzing job posting..." 
+              : "Finding potential advocates..."}
+          </p>
         </div>
       )}
-      
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {/* Error handling */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <p className="font-bold">Error</p>
+          <p>{error}</p>
+          {error.includes('job title') && (
+            <p className="mt-2">
+              We couldn't extract the job title from this page. 
+              This might happen with non-standard job postings.
+            </p>
+          )}
+          {error.includes('domain') && (
+            <p className="mt-2">
+              We couldn't determine the company domain from this job posting.
+            </p>
+          )}
+          <button 
+            onClick={fetchEmployees} 
+            className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
       
       <div className="space-y-4">
         {employees.map((employee, index) => (
