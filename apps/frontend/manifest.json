@@ -7,7 +7,7 @@
     "ws://localhost/"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ ws://localhost:5173/ ws://localhost:* http://localhost:3000/"
   },
   "action": { 
     "default_title": "Side Panel",

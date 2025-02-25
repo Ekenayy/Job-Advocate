@@ -90,52 +90,52 @@ const isJobSite = () => {
 // Function to extract job title based on the job site
 const extractJobInfo = async () => {
   const currentUrl = window.location.href.toLowerCase();
-  const domain = window.location.hostname.replace("www.", "");
+  const currentDomain = window.location.hostname.replace("www.", "");
   const pageText = document.body.innerText;
 
   try {
-    // Get job title using GPT
+    // Make sure we're using the absolute backend URL, not a relative one
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    console.log("Using backend URL:", backendUrl);
+    
+    if (!backendUrl || backendUrl === 'undefined') {
+      throw new Error('Backend URL is not defined. Check your .env file.');
+    }
+    
+    // Get job title and company domain using Claude
     const response = await fetch(
-      `${import.meta.env.VITE_BACKEND_URL}/analyze/job-info`,
+      `${backendUrl}/analyze/job-info`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ pageContent: pageText.substring(0, 3000) }),
+        body: JSON.stringify({ 
+          pageContent: pageText.substring(0, 3000),
+          currentUrl: currentUrl
+        }),
       }
     );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
 
     const responseText = await response.text();
     console.log("Raw response:", responseText);
     
-    // The response might be a JSON string that needs to be parsed
+    // Parse the response JSON
     let result;
     try {
-      // First try to parse the response as JSON
       result = JSON.parse(responseText);
     } catch (parseError) {
-      // If parsing fails, the response might already be a string with the job title
-      result = { jobTitle: responseText };
+      console.error("Error parsing response:", parseError);
+      result = { jobTitle: "", companyDomain: "" };
     }
     
     console.log("Parsed result:", result);
     const jobTitle = result.jobTitle || "";
-
-    // Get company domain from job posting
-    let companyDomain = domain;
-    if (isJobSite()) {
-      // Try to extract actual company domain from job posting
-      if (currentUrl.includes("linkedin.com")) {
-        const companyLink = document
-          .querySelector(".company-link")
-          ?.getAttribute("href");
-        if (companyLink) {
-          companyDomain = new URL(companyLink).hostname.replace("www.", "");
-        }
-      }
-      // Add more site-specific company domain extraction logic
-    }
+    const companyDomain = result.companyDomain || currentDomain;
 
     return {
       jobTitle,
@@ -146,7 +146,7 @@ const extractJobInfo = async () => {
     console.error("Error extracting job info:", error);
     return {
       jobTitle: "",
-      domain: domain,
+      domain: currentDomain,
       isJobSite: isJobSite(),
     };
   }

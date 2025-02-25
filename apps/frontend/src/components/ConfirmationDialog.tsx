@@ -21,23 +21,61 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ onClose, onEmpl
     
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const jobInfo = await chrome.tabs.sendMessage(tab.id!, { action: 'GET_JOB_INFO' });
+      console.log("Current tab:", tab);
+      
+      if (!tab || !tab.id) {
+        throw new Error('No active tab found');
+      }
+      
+      console.log("Sending GET_JOB_INFO message to tab:", tab.id);
+      const jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+      
+      console.log("Job info received:", jobInfo);
+      
+      if (!jobInfo) {
+        throw new Error('No job info received from content script');
+      }
       
       if (!jobInfo.isJobSite) {
         throw new Error('This page does not appear to be a job posting');
       }
       
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/snov/search?domain=${jobInfo.domain}&jobTitle=${jobInfo.jobTitle}`
-      );
+      // Extract domain from URL if it's a full URL
+      let domain = jobInfo.domain;
+      try {
+        if (domain.startsWith('http')) {
+          domain = new URL(domain).hostname;
+        }
+      } catch (e) {
+        console.error("Error parsing domain URL:", e);
+      }
       
-      if (!response.ok) throw new Error('Failed to fetch employees');
+      const apiUrl = `${import.meta.env.VITE_BACKEND_URL}/snov/search?domain=${encodeURIComponent(domain)}&jobTitle=${encodeURIComponent(jobInfo.jobTitle || "")}`;
+      console.log("Calling Snov API at:", apiUrl);
       
-      const data = await response.json();
+      // Use domain for API call, but encode both parameters
+      const response = await fetch(apiUrl);
+      
+      console.log("Snov response status:", response.status);
+      
+      // Try to get the response text first for debugging
+      const responseText = await response.text();
+      console.log("Raw Snov response:", responseText);
+      
+      // Then parse it as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Error parsing Snov response:", parseError);
+        throw new Error(`Failed to parse response: ${responseText.substring(0, 100)}...`);
+      }
+      
+      console.log("Employees found:", data.length);
       setEmployees(data);
       onEmployeesFound(data);
     } catch (error) {
-      setError('Failed to fetch employee information');
+      setError(error instanceof Error ? error.message : 'Failed to fetch employee information');
       console.error('Error:', error);
     } finally {
       setIsLoading(false);
