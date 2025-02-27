@@ -1,12 +1,20 @@
 import "./App.css";
-import ContentApp from "./content/ContentApp";
-// import { MemoryRouter as Router } from "react-router-dom";
+
+import { Header } from "./components/layout/Header";
+import { Routes } from "react-router";
+import { routes, catchAllRoute } from "./routes";
 
 function App() {
+  const routeElements = routes();
+  
   return (
-    <main className="main-content">
-          <ContentApp />
-    </main>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <Routes>
+        {routeElements}
+        {catchAllRoute}
+      </Routes>
+    </div>
   );
 }
 
