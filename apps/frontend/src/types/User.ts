@@ -8,10 +8,8 @@ export interface User {
 }
 
 export interface UserContextType {
-  contextUser: User | null;
   contextResume: Resume | null;
-  setContextUser: (user: User | null) => void;
-  setContextResume: (resume: Resume | null) => void;
-  setUser: (user: User) => void;
-  setResume: (resume: Resume) => void;
+  isOnboardingComplete: boolean;
+  setResume: (resume: Resume) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
 }

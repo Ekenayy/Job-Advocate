@@ -4,10 +4,12 @@
   "version": "1.0.0",
   "host_permissions": [
     "http://localhost/",
-    "ws://localhost/"
+    "ws://localhost/",
+    "https://*.clerk.com/*",
+    "https://*.supabase.co/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.supabase.co"
   },
   "action": { 
     "default_title": "Side Panel",
@@ -20,7 +22,8 @@
     "sidePanel",
     "identity",
     "identity.email",
-    "storage"
+    "storage",
+    "cookies"
   ],
   "oauth2": {
     "client_id": "807605227538-58ddgsc8s8prmso6e8laaddp8q949hvg.apps.googleusercontent.com",
