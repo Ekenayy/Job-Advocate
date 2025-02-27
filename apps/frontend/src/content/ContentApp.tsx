@@ -1,24 +1,60 @@
 import React, { useState } from "react";
 import Advocate from "../components/Advocate";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Onboarding } from "../components/onboarding/Onboarding";
 import { Employee } from "../types";
+import { GmailService } from '../services/gmailService';
+import { useUser } from '../context/UserProvder';
+
+interface Advocate {
+  id: number;
+  name: string;
+  title: string;
+  company: string;
+  email: string;
+  initials: string; 
+  linkedin?: string | undefined;
+}
+
+const advocates = [
+  {
+    id: 1,
+    name: "Elon Jobs",
+    title: "Founder & CEO",
+    company: "Decagon",
+    email: "ekene@joifulhealth.io",
+    initials: "EJ",
+    linkedin: "https://www.linkedin.com/in/elon-jobs/"
+  },
+  {
+    id: 2,
+    name: "David Mai",
+    title: "Director of Product",
+    company: "Decagon",
+    email: "ekene@joifulhealth.io",
+    initials: "DM",
+    linkedin: "https://www.linkedin.com/in/elon-jobs/"
+  },
+  {
+    id: 3,
+    name: "Sean Joe",
+    title: "Product Manager",
+    company: "Decagon",
+    email: "ekene@joifulhealth.io",
+    initials: "SJ"
+  }
+];
+
 
 const ContentApp: React.FC = () => {
-  const testBackground = {
-    companyBackground: "Company background here",
-    personBackground: "Person background here",
-    myQualifications: "Qualifications here",
-    jobRequirements: "Job requirements here"
-  };
-
-  const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
-  const [advocates, setAdvocates] = useState<Employee[]>([]);
+  const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
+  const [emailedAdvocates, setEmailedAdvocates] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
-  const [isOnboardingComplete, setIsOnboardingComplete] = useState(true);
+  const [_error, setError] = useState<string | Error | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(true);
+
+  const { contextResume } = useUser();
 
   const handleEmployeesFound = (employees: Employee[]) => {
     setAdvocates(employees);
@@ -35,9 +71,17 @@ const ContentApp: React.FC = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          userName: "Kevlin",
+          advocateName: advocate.name,
           companyBackground: testBackground.companyBackground,
-          personBackground: testBackground.personBackground,
-          myQualifications: testBackground.myQualifications,
+          personBackground: typeof contextResume?.parsed_data.Summary === 'string' 
+            ? { summary: contextResume?.parsed_data.Summary } 
+            : contextResume?.parsed_data.Summary || {},
+          myQualifications: {
+            skills: contextResume?.parsed_data.Skills || [],
+            experience: contextResume?.parsed_data.Experience || [],
+            education: contextResume?.parsed_data.Education || []
+          },
           jobRequirements: testBackground.jobRequirements
         })
       });
@@ -56,7 +100,6 @@ const ContentApp: React.FC = () => {
       setIsLoadingEmail(false);
     }
     
-
   };
 
   const handleClose = () => {
@@ -76,59 +119,28 @@ const ContentApp: React.FC = () => {
 
     setIsLoading(true);
 
-    const formBody = {
-      user_id: "86318221-2f8e-43e2-822c-2d76e94b7aad",
-      advocate_id: selectedAdvocate.id,
-      subject: subject,
-      email_body: content, 
-      to_email: "ekenayy@gmail.com",
-      status:"pending"
-    };
-    
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email`, {
-        method: 'POST',
-        body: JSON.stringify(formBody),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const gmailService = GmailService.getInstance();
+      await gmailService.sendEmail(
+        `${selectedAdvocate.name} <${selectedAdvocate.email || 'advocate@example.com'}>`,
+        subject,
+        content,
+        "Ekene"
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to send email");
-      }
-
+      setEmailedAdvocates(prev => [...new Set([...prev, selectedAdvocate.id])]);
       console.log("Email sent successfully");
-      const data = await response.json();
-      console.log('response data:', data);
       setIsLoading(false);
       setSelectedAdvocate(null);
+      
     } catch (error) {
       console.error("Error sending email:", error);
+      setError("There was an error sending the email. Please try again.");
       setIsLoading(false);
-    } 
+    }
+    
   };
 
-  if (!isOnboardingComplete) {
-    return (
-      <div className="p-4 max-w-md">
-        <Onboarding setIsOnboardingComplete={setIsOnboardingComplete} />
-      </div>
-    );
-  }
-
-  if (showConfirmation) {
-    return (
-      <div className="p-4 max-w-md">
-        <ConfirmationDialog
-          onClose={() => setShowConfirmation(false)}
-          onEmployeesFound={handleEmployeesFound}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="p-4 max-w-md">
@@ -141,15 +153,28 @@ const ContentApp: React.FC = () => {
         </button>
       </div>
       <div className="flex flex-col gap-14">
-        {advocates.map((employee) => (
-          selectedAdvocate === null || selectedAdvocate === employee ? (
+      {advocates.map((advocate) => {
+          if (emailedAdvocates.includes(advocate.id)) {
+            return (
+              <div key={advocate.id} className="bg-green-50 p-4 rounded-lg">
+                <p className="text-green-600 font-medium">
+                  Email sent successfully to {advocate.name} ✓
+                </p>
+                <p className="text-gray-600 mt-2 text-sm">
+                  We suggest waiting at least three days before continuing your outreach and follow ups.
+                </p>
+              </div>
+            );
+          }
+
+          return selectedAdvocate === null || selectedAdvocate === advocate ? (
             <Advocate
-              key={`${employee.first_name}-${employee.last_name}`}
-              name={`${employee.first_name} ${employee.last_name}`}
-              title={employee.position}
-              company={employee.seniority}
-              initials={`${employee.first_name[0]}${employee.last_name[0]}`}
-              isSelected={selectedAdvocate === employee}
+              key={advocate.id}
+              name={advocate.name}
+              title={advocate.title}
+              company={advocate.company}
+              initials={advocate.initials}
+              isSelected={selectedAdvocate === advocate}
               isLoading={isLoading}
               linkedin={employee.linkedin_url}
               onCompose={() => handleCompose(employee)}
@@ -157,8 +182,8 @@ const ContentApp: React.FC = () => {
               AIEmail={AIEmail}
               isLoadingEmail={isLoadingEmail}
             />
-          ) : null
-        ))}
+          ) : null;
+        })}
       </div>
     </div>
   );
