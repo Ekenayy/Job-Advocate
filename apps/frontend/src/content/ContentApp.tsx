@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Advocate from "../components/Advocate";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Employee } from "../types";
+import { Employee } from "../types/Employee";
 import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
 
@@ -15,38 +15,26 @@ interface Advocate {
   linkedin?: string | undefined;
 }
 
-const advocates = [
-  {
-    id: 1,
-    name: "Elon Jobs",
-    title: "Founder & CEO",
-    company: "Decagon",
-    email: "ekene@joifulhealth.io",
-    initials: "EJ",
-    linkedin: "https://www.linkedin.com/in/elon-jobs/"
-  },
-  {
-    id: 2,
-    name: "David Mai",
-    title: "Director of Product",
-    company: "Decagon",
-    email: "ekene@joifulhealth.io",
-    initials: "DM",
-    linkedin: "https://www.linkedin.com/in/elon-jobs/"
-  },
-  {
-    id: 3,
-    name: "Sean Joe",
-    title: "Product Manager",
-    company: "Decagon",
-    email: "ekene@joifulhealth.io",
-    initials: "SJ"
-  }
-];
+const testBackground = 	{
+  "companyBackground": "Soda Health is a healthcare technology company focused on building solutions which eliminate health inequities and create a healthier America.  We provide a technology platform to administer benefits personalized to individual needs, delivered more cost-effectively.  Our expertise in healthcare, retail and consumer experience provides us with the foundation for creating easy-to-use solutions with an experience which moves beyond transactional relationships to sustained engagement and overall health improvement.  That is a win for everyone. Soda Health is a Series B stage company, backed by leading investors including Define Ventures, General Catalyst, Lightspeed Venture Partners, Pinegrove Capital Partners, and Qiming Venture Partners.",
+  "jobRequirements": `While every candidate brings a unique resume and prospective, an ideal candidate will include: 5-15 years software engineering experience
+Refined ability to present and demo your work so others can understand it
+Robust experience working in a full-stack environment where the backend is strongly typed (we use golang)
+Experience in browser tech (HTML, CSS, JavaScript)
+Desire to build end-to-end, from business logic to presentation (we use HTMX/templ)
+Comfort with container technology (Docker or similar)
+Heads-up awareness of production applications with effective monitoring, logging, and observability of the full application stack.
+Confidence and ability to provide supportive and critical feedback in PR reviews to make the code better for everyone
+Enthusiasm for writing efficient tests that produce tight feedback loops
+Passion to take ownership, collaborate, and solve problems for real, everyday people
+Technical and cultural leader who encourages these traits in the people around them
+Bachelor’s degree or similar experience strongly preferred`
+}
 
 
 const ContentApp: React.FC = () => {
-  const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
+  const [advocates, setAdvocates] = useState<Employee[]>([]);
+  const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
   const [emailedAdvocates, setEmailedAdvocates] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
@@ -72,7 +60,7 @@ const ContentApp: React.FC = () => {
         },
         body: JSON.stringify({
           userName: "Kevlin",
-          advocateName: advocate.name,
+          advocateName: advocate.first_name + " " + advocate.last_name,
           companyBackground: testBackground.companyBackground,
           personBackground: typeof contextResume?.parsed_data.Summary === 'string' 
             ? { summary: contextResume?.parsed_data.Summary } 
@@ -122,13 +110,13 @@ const ContentApp: React.FC = () => {
     try {
       const gmailService = GmailService.getInstance();
       await gmailService.sendEmail(
-        `${selectedAdvocate.name} <${selectedAdvocate.email || 'advocate@example.com'}>`,
+        `${selectedAdvocate.first_name} <${selectedAdvocate.email || 'advocate@example.com'}>`,
         subject,
         content,
         "Ekene"
       );
 
-      setEmailedAdvocates(prev => [...new Set([...prev, selectedAdvocate.id])]);
+      setEmailedAdvocates(prev => [...new Set([...prev, parseInt(selectedAdvocate.id)])]);
       console.log("Email sent successfully");
       setIsLoading(false);
       setSelectedAdvocate(null);
@@ -141,6 +129,18 @@ const ContentApp: React.FC = () => {
     
   };
 
+  if (showConfirmation) {
+    return (
+      <div className="p-4 max-w-md">
+        <ConfirmationDialog
+          onClose={() => setShowConfirmation(false)}
+          onEmployeesFound={handleEmployeesFound}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 max-w-md">
@@ -153,12 +153,12 @@ const ContentApp: React.FC = () => {
         </button>
       </div>
       <div className="flex flex-col gap-14">
-      {advocates.map((advocate) => {
-          if (emailedAdvocates.includes(advocate.id)) {
+      {advocates.map((employee) => {
+          if (emailedAdvocates.includes(parseInt(employee.id))) {
             return (
-              <div key={advocate.id} className="bg-green-50 p-4 rounded-lg">
+              <div key={employee.id} className="bg-green-50 p-4 rounded-lg">
                 <p className="text-green-600 font-medium">
-                  Email sent successfully to {advocate.name} ✓
+                  Email sent successfully to {employee.first_name + " " + employee.last_name} ✓
                 </p>
                 <p className="text-gray-600 mt-2 text-sm">
                   We suggest waiting at least three days before continuing your outreach and follow ups.
@@ -167,14 +167,14 @@ const ContentApp: React.FC = () => {
             );
           }
 
-          return selectedAdvocate === null || selectedAdvocate === advocate ? (
+          return selectedAdvocate === null || selectedAdvocate === employee ? (
             <Advocate
-              key={advocate.id}
-              name={advocate.name}
-              title={advocate.title}
-              company={advocate.company}
-              initials={advocate.initials}
-              isSelected={selectedAdvocate === advocate}
+              key={employee.id}
+              name={employee.first_name + " " + employee.last_name}
+              title={employee.title}
+              company={employee.company}
+              initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
+              isSelected={selectedAdvocate === employee}
               isLoading={isLoading}
               linkedin={employee.linkedin_url}
               onCompose={() => handleCompose(employee)}
