@@ -7,5 +7,6 @@ export interface Employee {
   seniority: string;
   email: string;
   linkedin_url?: string;
+  source_page?: string;
   id: string;
 }

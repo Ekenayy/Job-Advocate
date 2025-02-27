@@ -15,23 +15,6 @@ interface Advocate {
   linkedin?: string | undefined;
 }
 
-const testBackground = 	{
-  "companyBackground": "Soda Health is a healthcare technology company focused on building solutions which eliminate health inequities and create a healthier America.  We provide a technology platform to administer benefits personalized to individual needs, delivered more cost-effectively.  Our expertise in healthcare, retail and consumer experience provides us with the foundation for creating easy-to-use solutions with an experience which moves beyond transactional relationships to sustained engagement and overall health improvement.  That is a win for everyone. Soda Health is a Series B stage company, backed by leading investors including Define Ventures, General Catalyst, Lightspeed Venture Partners, Pinegrove Capital Partners, and Qiming Venture Partners.",
-  "jobRequirements": `While every candidate brings a unique resume and prospective, an ideal candidate will include: 5-15 years software engineering experience
-Refined ability to present and demo your work so others can understand it
-Robust experience working in a full-stack environment where the backend is strongly typed (we use golang)
-Experience in browser tech (HTML, CSS, JavaScript)
-Desire to build end-to-end, from business logic to presentation (we use HTMX/templ)
-Comfort with container technology (Docker or similar)
-Heads-up awareness of production applications with effective monitoring, logging, and observability of the full application stack.
-Confidence and ability to provide supportive and critical feedback in PR reviews to make the code better for everyone
-Enthusiasm for writing efficient tests that produce tight feedback loops
-Passion to take ownership, collaborate, and solve problems for real, everyday people
-Technical and cultural leader who encourages these traits in the people around them
-Bachelor’s degree or similar experience strongly preferred`
-}
-
-
 const ContentApp: React.FC = () => {
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
@@ -41,10 +24,29 @@ const ContentApp: React.FC = () => {
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [_error, setError] = useState<string | Error | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(true);
+  const [jobInfo, setJobInfo] = useState<{
+    companyBackground: string;
+    jobRequirements: string;
+  }>({
+    companyBackground: "",
+    jobRequirements: ""
+  });
 
-  const { contextResume } = useUser();
 
-  const handleEmployeesFound = (employees: Employee[]) => {
+  const { contextResume, user } = useUser();
+
+  const handleEmployeesFound = async (employees: Employee[]) => {
+    // Get the current tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    // Get job info from content script
+    const info = await chrome.tabs.sendMessage(tab.id!, { action: 'GET_JOB_INFO' });
+    
+    setJobInfo({
+      companyBackground: info.companyBackground,
+      jobRequirements: info.jobRequirements
+    });
+    
     setAdvocates(employees);
     setShowConfirmation(false);
   };
@@ -52,6 +54,9 @@ const ContentApp: React.FC = () => {
   const handleCompose = async (advocate: Employee) => {
     setSelectedAdvocate(advocate);
     setIsLoadingEmail(true);
+
+    console.log('jobInfo', jobInfo);
+
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/generate`, {
         method: 'POST',
@@ -59,9 +64,9 @@ const ContentApp: React.FC = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          userName: "Kevlin",
+          userName: user?.firstName,
           advocateName: advocate.first_name + " " + advocate.last_name,
-          companyBackground: testBackground.companyBackground,
+          companyBackground: jobInfo.companyBackground,
           personBackground: typeof contextResume?.parsed_data.Summary === 'string' 
             ? { summary: contextResume?.parsed_data.Summary } 
             : contextResume?.parsed_data.Summary || {},
@@ -70,7 +75,7 @@ const ContentApp: React.FC = () => {
             experience: contextResume?.parsed_data.Experience || [],
             education: contextResume?.parsed_data.Education || []
           },
-          jobRequirements: testBackground.jobRequirements
+          jobRequirements: jobInfo.jobRequirements
         })
       });
   
@@ -171,12 +176,13 @@ const ContentApp: React.FC = () => {
             <Advocate
               key={employee.id}
               name={employee.first_name + " " + employee.last_name}
-              title={employee.title}
+              title={employee.position}
               company={employee.company}
               initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
+              email={employee.email}
               isSelected={selectedAdvocate === employee}
               isLoading={isLoading}
-              linkedin={employee.linkedin_url}
+              linkedin={employee.source_page}
               onCompose={() => handleCompose(employee)}
               onSendEmail={handleSendEmail}
               AIEmail={AIEmail}

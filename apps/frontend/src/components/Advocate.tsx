@@ -14,12 +14,13 @@ interface AdvocateProps {
   isSelected: boolean;
   isLoading: boolean;
   isLoadingEmail: boolean;
+  email: string;
   onCompose: () => void;
   onSendEmail: (e: React.FormEvent<HTMLFormElement>) => void;
   AIEmail: { subject: string; body: string } | null;
 }
 
-const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail }) => {
+const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail, email }) => {
   const [emailContent, setEmailContent] = useState(AIEmail?.body || '');
   const [emailSubject, setEmailSubject] = useState(AIEmail?.subject || '');
 
@@ -36,9 +37,12 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
           <span className="text-gray-700">{initials}</span>
         </div>
-        <span className="text-2xl font-medium">{name}</span>
+        <div className="flex flex-col">
+          <span className="text-2xl font-medium">{name}</span>
+          <span className="text-md text-gray-500">{email}</span>
+        </div>
         {linkedin ? <a href={linkedin} target="_blank" rel="noopener noreferrer">
-          <FaLinkedin className="w-6 h-6 text-blue-600" />
+          <FaLinkedin className="w-6 h-6 text-blue-600 cursor-pointer" />
         </a> : <div className="w-6 h-6" />}
       </div>
       <div className="flex text-lg text-black justify-between">

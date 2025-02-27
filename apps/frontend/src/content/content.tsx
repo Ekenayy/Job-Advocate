@@ -134,10 +134,14 @@ const extractJobInfo = async () => {
     console.log("Parsed result:", result);
     const jobTitle = result.jobTitle || "";
     const companyDomain = result.companyDomain || currentDomain;
+    const companyBackground = result.companyBackground || "";
+    const jobRequirements = result.jobRequirements || "";
 
     return {
       jobTitle,
       domain: companyDomain,
+      companyBackground,
+      jobRequirements,
       isJobSite: isJobSite(),
     };
   } catch (error) {
