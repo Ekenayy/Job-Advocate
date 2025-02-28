@@ -45,7 +45,7 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           <FaLinkedin className="w-6 h-6 text-blue-600 cursor-pointer" />
         </a> : <div className="w-6 h-6" />}
       </div>
-      <div className="flex text-lg text-black justify-between">
+      <div className="flex text-md text-black justify-between gap-6">
         <span className="font-bold">{company}</span>
         <span>{title}</span>
       </div>

@@ -163,7 +163,7 @@ const ContentApp: React.FC = () => {
 
   if (showConfirmation) {
     return (
-      <div className="p-4 max-w-md">
+      <div className="p-4">
         <ConfirmationDialog
           onClose={() => setShowConfirmation(false)}
           onConfirm={fetchJobInfoAndEmployees}
@@ -174,7 +174,7 @@ const ContentApp: React.FC = () => {
   }
 
   return (
-    <div className="p-4 max-w-md">
+    <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Advocates</h1>
         <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
