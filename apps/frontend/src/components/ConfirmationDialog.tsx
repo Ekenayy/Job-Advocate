@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { PropagateLoader } from 'react-spinners';
-import { Employee } from '../types/Employee';
 
 interface ConfirmationDialogProps {
   onClose: () => void;
