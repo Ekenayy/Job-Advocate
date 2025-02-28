@@ -91,6 +91,7 @@ const isJobSite = () => {
 const extractJobInfo = async () => {
   const currentDomain = window.location.hostname.replace("www.", "");
   const pageText = document.body.innerText;
+  const timestamp = Date.now(); // Add timestamp
 
   try {
     // Make sure we're using the absolute backend URL, not a relative one
@@ -98,16 +99,17 @@ const extractJobInfo = async () => {
     console.log("Using backend URL:", backendUrl);
     
     if (!backendUrl || backendUrl === 'undefined') {
-      throw new Error('Backend URL is not defined. Check your .env file.');
+      throw new Error('Backend URL is not defined');
     }
     
     // Get job title and company domain using Claude
     const response = await fetch(
-      `${backendUrl}/analyze/job-info`,
+      `${backendUrl}/analyze/job-info?_=${timestamp}`, // Add cache buster
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache" // Add no-cache header
         },
         body: JSON.stringify({ 
           pageContent: pageText.substring(0, 3000)
@@ -115,41 +117,32 @@ const extractJobInfo = async () => {
       }
     );
 
+    console.log('Raw response before parsing:', await response.clone().text()); // Debug log
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
 
-    const responseText = await response.text();
-    console.log("Raw response:", responseText);
-    
-    // Parse the response JSON
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error("Error parsing response:", parseError);
-      result = { jobTitle: "", companyDomain: "" };
-    }
-    
-    console.log("Parsed result:", result);
-    const jobTitle = result.jobTitle || "";
-    const companyDomain = result.companyDomain || currentDomain;
-    const companyBackground = result.companyBackground || "";
-    const jobRequirements = result.jobRequirements || "";
-    const companyName = result.companyName || "";
-    return {
-      jobTitle,
-      domain: companyDomain,
-      companyBackground,
-      jobRequirements,
-      companyName,
+    const result = await response.json();
+    const jobInfo = {
+      jobTitle: result.jobTitle || "",
+      domain: result.companyDomain || currentDomain,
+      companyBackground: result.companyBackground || "",
+      jobRequirements: result.jobRequirements || "",
+      companyName: result.companyName || currentDomain.split('.')[0],
       isJobSite: isJobSite(),
     };
+
+    console.log('Sending job info to frontend:', jobInfo); // Debug log
+    return jobInfo;
   } catch (error) {
     console.error("Error extracting job info:", error);
     return {
       jobTitle: "",
       domain: currentDomain,
+      companyBackground: "",
+      jobRequirements: "",
+      companyName: currentDomain.split('.')[0], // Fallback to domain name
       isJobSite: isJobSite(),
     };
   }

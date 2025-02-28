@@ -34,24 +34,48 @@ const ContentApp: React.FC = () => {
     companyName: ""
   });
 
-
   const { contextResume, user } = useUser();
 
-  const handleEmployeesFound = async (employees: Employee[]) => {
-    // Get the current tab
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
-    // Get job info from content script
-    const info = await chrome.tabs.sendMessage(tab.id!, { action: 'GET_JOB_INFO' });
-    
-    setJobInfo({
-      companyBackground: info.companyBackground,
-      jobRequirements: info.jobRequirements,
-      companyName: info.companyName
-    });
-    
-    setAdvocates(employees);
-    setShowConfirmation(false);
+  const fetchJobInfoAndEmployees = async () => {
+    setIsLoading(true);
+    try {
+      // Get current tab
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) throw new Error('No active tab found');
+
+      // Get job info from content script
+      const jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+      console.log('Job info received:', jobInfo);
+
+      if (!jobInfo.isJobSite) {
+        throw new Error('This page does not appear to be a job posting');
+      }
+
+      // Set job info with all expected fields
+      setJobInfo({
+        companyBackground: jobInfo.companyBackground || "",
+        jobRequirements: jobInfo.jobRequirements || "",
+        companyName: jobInfo.companyName || ""
+      });
+
+      // Fetch employees
+      const apiUrl = `${import.meta.env.VITE_BACKEND_URL}/snov/search?domain=${encodeURIComponent(jobInfo.domain)}&jobTitle=${encodeURIComponent(jobInfo.jobTitle || "")}`;
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch employees');
+      }
+
+      const employees = await response.json();
+      setAdvocates(employees);
+      setShowConfirmation(false);
+
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCompose = async (advocate: Employee) => {
@@ -142,9 +166,8 @@ const ContentApp: React.FC = () => {
       <div className="p-4 max-w-md">
         <ConfirmationDialog
           onClose={() => setShowConfirmation(false)}
-          onEmployeesFound={handleEmployeesFound}
+          onConfirm={fetchJobInfoAndEmployees}
           isLoading={isLoading}
-          setIsLoading={setIsLoading}
         />
       </div>
     );
@@ -174,8 +197,6 @@ const ContentApp: React.FC = () => {
               </div>
             );
           }
-
-          console.log('jobInfo.companyName', jobInfo.companyName);
 
           return selectedAdvocate === null || selectedAdvocate === employee ? (
             <Advocate
