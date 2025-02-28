@@ -136,12 +136,13 @@ const extractJobInfo = async () => {
     const companyDomain = result.companyDomain || currentDomain;
     const companyBackground = result.companyBackground || "";
     const jobRequirements = result.jobRequirements || "";
-
+    const companyName = result.companyName || "";
     return {
       jobTitle,
       domain: companyDomain,
       companyBackground,
       jobRequirements,
+      companyName,
       isJobSite: isJobSite(),
     };
   } catch (error) {

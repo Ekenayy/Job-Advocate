@@ -10,6 +10,9 @@ export const jobInfoResponseSchema = Type.Object({
   jobTitle: Type.String({
     description: 'The extracted job title'
   }),
+  companyName: Type.String({
+    description: 'The extracted company name'
+  }),
   companyDomain: Type.String({
     description: 'The extracted company domain'
   }),

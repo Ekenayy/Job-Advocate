@@ -27,9 +27,11 @@ const ContentApp: React.FC = () => {
   const [jobInfo, setJobInfo] = useState<{
     companyBackground: string;
     jobRequirements: string;
+    companyName: string;
   }>({
     companyBackground: "",
-    jobRequirements: ""
+    jobRequirements: "",
+    companyName: ""
   });
 
 
@@ -44,7 +46,8 @@ const ContentApp: React.FC = () => {
     
     setJobInfo({
       companyBackground: info.companyBackground,
-      jobRequirements: info.jobRequirements
+      jobRequirements: info.jobRequirements,
+      companyName: info.companyName
     });
     
     setAdvocates(employees);
@@ -172,12 +175,14 @@ const ContentApp: React.FC = () => {
             );
           }
 
+          console.log('jobInfo.companyName', jobInfo.companyName);
+
           return selectedAdvocate === null || selectedAdvocate === employee ? (
             <Advocate
               key={employee.id}
               name={employee.first_name + " " + employee.last_name}
               title={employee.position}
-              company={employee.company}
+              company={jobInfo.companyName}
               initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
               email={employee.email}
               isSelected={selectedAdvocate === employee}

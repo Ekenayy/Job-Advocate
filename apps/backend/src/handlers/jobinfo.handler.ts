@@ -19,8 +19,9 @@ export const extractJobInfoHandler = async (
       messages: [
         {
           role: "user",
-          content: `Extract the job title, company domain, company background, and job requirements from the following job description in json format. Return only the job title, company domain, company background, and job requirements, no other text or commentary. The domain must be a url. Return a JSON object with exactly these fields:
+          content: `Extract the job title, company name, company domain, company background, and job requirements from the following job description in json format. Return only the job title, company name, company domain, company background, and job requirements, no other text or commentary. The domain must be a url. Return a JSON object with exactly these fields:
           - jobTitle: The title of the job position
+          - companyName: The name of the company
           - companyDomain: The company's domain as a URL (e.g., "company.com")
           - companyBackground: The company's background as a string
           - jobRequirements: The job requirements as a string
