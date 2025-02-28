@@ -21,5 +21,8 @@ export const jobInfoResponseSchema = Type.Object({
   }),
   jobRequirements: Type.String({
     description: 'The extracted job requirements'
+  }),
+  potentialAdvocates: Type.Array(Type.String(), {
+    description: 'The potential advocates for the job'
   })
 });

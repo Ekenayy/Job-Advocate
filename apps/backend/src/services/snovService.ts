@@ -24,7 +24,8 @@ interface Prospect {
 
 export const searchDomainEmployees = async (
   domain: string,
-  jobTitle: string
+  jobTitle: string,
+  potentialAdvocates: string[]
 ): Promise<Employee[]> => {
   try {
     console.log("Starting searchDomainEmployees with:", { domain, jobTitle });
@@ -95,7 +96,7 @@ export const searchDomainEmployees = async (
       },
       body: JSON.stringify({
         domain: domain,
-        positions: [jobTitle, "founder", "cofounder", "co-founder", "CEO"],
+        positions: [jobTitle, ...potentialAdvocates, "founder", "cofounder", "co-founder", "CEO"],
       }),
     });
 

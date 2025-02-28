@@ -130,6 +130,7 @@ const extractJobInfo = async () => {
       companyBackground: result.companyBackground || "",
       jobRequirements: result.jobRequirements || "",
       companyName: result.companyName || currentDomain.split('.')[0],
+      potentialAdvocates: result.potentialAdvocates || [],
       isJobSite: isJobSite(),
     };
 
@@ -143,6 +144,7 @@ const extractJobInfo = async () => {
       companyBackground: "",
       jobRequirements: "",
       companyName: currentDomain.split('.')[0], // Fallback to domain name
+      potentialAdvocates: [],
       isJobSite: isJobSite(),
     };
   }

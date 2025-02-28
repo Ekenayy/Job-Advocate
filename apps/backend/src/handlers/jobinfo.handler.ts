@@ -19,16 +19,35 @@ export const extractJobInfoHandler = async (
       messages: [
         {
           role: "user",
-          content: `Extract the job title, company name, company domain, company background, and job requirements from the following job description in json format. Return only the job title, company name, company domain, company background, and job requirements, no other text or commentary. The domain must be a url. Return a JSON object with exactly these fields:
-          - jobTitle: The title of the job position
+          content: `Extract the job title, company name, company domain, company background, job requirements, and potential advocates from the following job description in json format.
+
+          For the job title:
+          - Extract only the core job title without location, remote status, or technology stack
+          - Remove prefixes like "Remote", "Hybrid", "Virtual", etc.
+          - Remove suffixes like "(Node.js, AWS)", "| Hybrid", etc.
+          - Standardize titles: "Sr." → "Senior", "Jr." → "Junior", "Mgr" → "Manager", etc.
+          - Keep the seniority level (Junior, Mid, Senior, Lead, etc.) if present
+          - Keep the specialization (Frontend, Backend, Full Stack, etc.) if present
+
+          For potential advocates:
+          - Identify 3-5 job titles of people at the company who would be valuable for the candidate to connect with
+          - Include the hiring manager's likely title
+          - Include team members with similar or complementary roles
+          - Include senior roles that might influence hiring decisions
+          - Format as an array of standardized job titles (e.g., ["Engineering Manager", "Senior Software Engineer"])
+
+          Return a JSON object with exactly these fields:
+          - jobTitle: The standardized core job title
           - companyName: The name of the company
           - companyDomain: The company's domain as a URL (e.g., "company.com")
           - companyBackground: The company's background as a string
           - jobRequirements: The job requirements as a string
+          - potentialAdvocates: Array of 3-5 job titles of people who would be valuable connections
+
           Job description: ${pageContent.substring(0, 2000)}`
         }
       ],
-      system: "You are a helpful assistant that extracts job information from job postings. Always respond with valid JSON containing jobTitle and companyDomain fields."
+      system: "You are a helpful assistant that extracts job information from job postings. Always respond with valid JSON containing all requested fields. For job titles and potential advocates, extract only the core titles without location, remote status, or technology stack."
     });
 
     if (!response.content[0] || typeof response.content[0] !== 'object') {

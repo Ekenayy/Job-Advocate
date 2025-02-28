@@ -7,10 +7,10 @@ import {
 
 export default async function snovRoutes(fastify: FastifyInstance) {
   fastify.route({
-    method: 'GET',
+    method: 'POST',
     url: '/snov/search',
     schema: {
-      querystring: snovSearchQuerySchema,
+      body: snovSearchQuerySchema,
       response: {
         200: snovSearchResponseSchema
       }

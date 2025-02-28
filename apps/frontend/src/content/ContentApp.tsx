@@ -28,10 +28,12 @@ const ContentApp: React.FC = () => {
     companyBackground: string;
     jobRequirements: string;
     companyName: string;
+    potentialAdvocates: string[];
   }>({
     companyBackground: "",
     jobRequirements: "",
-    companyName: ""
+    companyName: "",
+    potentialAdvocates: []
   });
 
   const { contextResume, user } = useUser();
@@ -55,12 +57,22 @@ const ContentApp: React.FC = () => {
       setJobInfo({
         companyBackground: jobInfo.companyBackground || "",
         jobRequirements: jobInfo.jobRequirements || "",
-        companyName: jobInfo.companyName || ""
+        companyName: jobInfo.companyName || "",
+        potentialAdvocates: jobInfo.potentialAdvocates || []
       });
 
-      // Fetch employees
-      const apiUrl = `${import.meta.env.VITE_BACKEND_URL}/snov/search?domain=${encodeURIComponent(jobInfo.domain)}&jobTitle=${encodeURIComponent(jobInfo.jobTitle || "")}`;
-      const response = await fetch(apiUrl);
+      // Fetch employees using POST with request body
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          domain: jobInfo.domain,
+          jobTitle: jobInfo.jobTitle || "",
+          potentialAdvocates: jobInfo.potentialAdvocates || []
+        })
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch employees');

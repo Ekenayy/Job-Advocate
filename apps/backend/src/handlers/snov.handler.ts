@@ -1,14 +1,15 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { searchDomainEmployees } from '../services/snovService';
+import { snovSearchQuerySchemaType } from '../schemas/snov.schema';
 
 export const searchEmployeesHandler = async (
   request: FastifyRequest<{
-    Querystring: { domain: string; jobTitle: string }
+    Body: snovSearchQuerySchemaType
   }>,
   reply: FastifyReply
 ) => {
   try {
-    const { domain, jobTitle } = request.query;
+    const { domain, jobTitle, potentialAdvocates = [] } = request.body;
     
     if (!domain || !jobTitle) {
       return reply.status(400).send({ 
@@ -16,7 +17,7 @@ export const searchEmployeesHandler = async (
       });
     }
 
-    const employees = await searchDomainEmployees(domain, jobTitle);
+    const employees = await searchDomainEmployees(domain, jobTitle, potentialAdvocates);
     
     if (!employees || employees.length === 0) {
       return reply.status(404).send({ 

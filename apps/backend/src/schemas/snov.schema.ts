@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
 export const snovEmployeeSchema = Type.Object({
   first_name: Type.String(),
@@ -11,6 +11,12 @@ export const snovEmployeeSchema = Type.Object({
 export const snovSearchQuerySchema = Type.Object({
   domain: Type.String(),
   jobTitle: Type.String(),
+  potentialAdvocates: Type.Array(Type.String(), {
+    description: 'The potential advocates for the job'
+  })
 });
+
+export type snovSearchQuerySchemaType = Static<typeof snovSearchQuerySchema>;
+
 
 export const snovSearchResponseSchema = Type.Array(snovEmployeeSchema);
