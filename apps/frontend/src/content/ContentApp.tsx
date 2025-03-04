@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Advocate from "../components/Advocate";
+import ConfirmationDialog from "../components/ConfirmationDialog";
+import { Employee } from "../types/Employee";
 import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
 
@@ -13,65 +15,87 @@ interface Advocate {
   linkedin?: string | undefined;
 }
 
-const advocates = [
-  {
-    id: 1,
-    name: "Elon Jobs",
-    title: "Founder & CEO",
-    company: "Decagon",
-    email: "ekene@joifulhealth.io",
-    initials: "EJ",
-    linkedin: "https://www.linkedin.com/in/elon-jobs/"
-  },
-  {
-    id: 2,
-    name: "David Mai",
-    title: "Director of Product",
-    company: "Decagon",
-    email: "ekene@joifulhealth.io",
-    initials: "DM",
-    linkedin: "https://www.linkedin.com/in/elon-jobs/"
-  },
-  {
-    id: 3,
-    name: "Sean Joe",
-    title: "Product Manager",
-    company: "Decagon",
-    email: "ekene@joifulhealth.io",
-    initials: "SJ"
-  }
-];
-
-const testBackground = 	{
-  "companyBackground": "Soda Health is a healthcare technology company focused on building solutions which eliminate health inequities and create a healthier America.  We provide a technology platform to administer benefits personalized to individual needs, delivered more cost-effectively.  Our expertise in healthcare, retail and consumer experience provides us with the foundation for creating easy-to-use solutions with an experience which moves beyond transactional relationships to sustained engagement and overall health improvement.  That is a win for everyone. Soda Health is a Series B stage company, backed by leading investors including Define Ventures, General Catalyst, Lightspeed Venture Partners, Pinegrove Capital Partners, and Qiming Venture Partners.",
-  "jobRequirements": `While every candidate brings a unique resume and prospective, an ideal candidate will include: 5-15 years software engineering experience
-Refined ability to present and demo your work so others can understand it
-Robust experience working in a full-stack environment where the backend is strongly typed (we use golang)
-Experience in browser tech (HTML, CSS, JavaScript)
-Desire to build end-to-end, from business logic to presentation (we use HTMX/templ)
-Comfort with container technology (Docker or similar)
-Heads-up awareness of production applications with effective monitoring, logging, and observability of the full application stack.
-Confidence and ability to provide supportive and critical feedback in PR reviews to make the code better for everyone
-Enthusiasm for writing efficient tests that produce tight feedback loops
-Passion to take ownership, collaborate, and solve problems for real, everyday people
-Technical and cultural leader who encourages these traits in the people around them
-Bachelor’s degree or similar experience strongly preferred`
-}
-
-
 const ContentApp: React.FC = () => {
-  const [selectedAdvocate, setSelectedAdvocate] = useState<Advocate | null>(null);
+  const [advocates, setAdvocates] = useState<Employee[]>([]);
+  const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
   const [emailedAdvocates, setEmailedAdvocates] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [_error, setError] = useState<string | Error | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(true);
+  const [jobInfo, setJobInfo] = useState<{
+    companyBackground: string;
+    jobRequirements: string;
+    companyName: string;
+    potentialAdvocates: string[];
+  }>({
+    companyBackground: "",
+    jobRequirements: "",
+    companyName: "",
+    potentialAdvocates: []
+  });
 
-  const { contextResume } = useUser();
+  const { contextResume, user } = useUser();
 
-  const handleCompose = async (advocate: Advocate) => {
+  const fetchJobInfoAndEmployees = async () => {
+    setIsLoading(true);
+    try {
+      // Get current tab
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) throw new Error('No active tab found');
+
+      // Get job info from content script
+      const jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+      console.log('Job info received:', jobInfo);
+
+      if (!jobInfo.isJobSite) {
+        throw new Error('This page does not appear to be a job posting');
+      }
+
+      // Set job info with all expected fields
+      setJobInfo({
+        companyBackground: jobInfo.companyBackground || "",
+        jobRequirements: jobInfo.jobRequirements || "",
+        companyName: jobInfo.companyName || "",
+        potentialAdvocates: jobInfo.potentialAdvocates || []
+      });
+
+      // Fetch employees using POST with request body
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          domain: jobInfo.domain,
+          jobTitle: jobInfo.jobTitle || "",
+          potentialAdvocates: jobInfo.potentialAdvocates || []
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch employees');
+      }
+
+      const employees = await response.json();
+      setAdvocates(employees);
+      setShowConfirmation(false);
+
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCompose = async (advocate: Employee) => {
     setSelectedAdvocate(advocate);
     setIsLoadingEmail(true);
+
+    console.log('jobInfo', jobInfo);
+
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/generate`, {
         method: 'POST',
@@ -79,9 +103,9 @@ const ContentApp: React.FC = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          userName: "Kevlin",
-          advocateName: advocate.name,
-          companyBackground: testBackground.companyBackground,
+          userName: user?.firstName,
+          advocateName: advocate.first_name + " " + advocate.last_name,
+          companyBackground: jobInfo.companyBackground,
           personBackground: typeof contextResume?.parsed_data.Summary === 'string' 
             ? { summary: contextResume?.parsed_data.Summary } 
             : contextResume?.parsed_data.Summary || {},
@@ -90,7 +114,7 @@ const ContentApp: React.FC = () => {
             experience: contextResume?.parsed_data.Experience || [],
             education: contextResume?.parsed_data.Education || []
           },
-          jobRequirements: testBackground.jobRequirements
+          jobRequirements: jobInfo.jobRequirements
         })
       });
   
@@ -130,13 +154,13 @@ const ContentApp: React.FC = () => {
     try {
       const gmailService = GmailService.getInstance();
       await gmailService.sendEmail(
-        `${selectedAdvocate.name} <${selectedAdvocate.email || 'advocate@example.com'}>`,
+        `${selectedAdvocate.first_name} <${selectedAdvocate.email || 'advocate@example.com'}>`,
         subject,
         content,
         "Ekene"
       );
 
-      setEmailedAdvocates(prev => [...new Set([...prev, selectedAdvocate.id])]);
+      setEmailedAdvocates(prev => [...new Set([...prev, parseInt(selectedAdvocate.id)])]);
       console.log("Email sent successfully");
       setIsLoading(false);
       setSelectedAdvocate(null);
@@ -149,9 +173,20 @@ const ContentApp: React.FC = () => {
     
   };
 
+  if (showConfirmation) {
+    return (
+      <div className="p-4">
+        <ConfirmationDialog
+          onClose={() => setShowConfirmation(false)}
+          onConfirm={fetchJobInfoAndEmployees}
+          isLoading={isLoading}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 max-w-md">
+    <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Advocates</h1>
         <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
@@ -161,12 +196,12 @@ const ContentApp: React.FC = () => {
         </button>
       </div>
       <div className="flex flex-col gap-14">
-      {advocates.map((advocate) => {
-          if (emailedAdvocates.includes(advocate.id)) {
+      {advocates.map((employee) => {
+          if (emailedAdvocates.includes(parseInt(employee.id))) {
             return (
-              <div key={advocate.id} className="bg-green-50 p-4 rounded-lg">
+              <div key={employee.id} className="bg-green-50 p-4 rounded-lg">
                 <p className="text-green-600 font-medium">
-                  Email sent successfully to {advocate.name} ✓
+                  Email sent successfully to {employee.first_name + " " + employee.last_name} ✓
                 </p>
                 <p className="text-gray-600 mt-2 text-sm">
                   We suggest waiting at least three days before continuing your outreach and follow ups.
@@ -175,17 +210,18 @@ const ContentApp: React.FC = () => {
             );
           }
 
-          return selectedAdvocate === null || selectedAdvocate === advocate ? (
+          return selectedAdvocate === null || selectedAdvocate === employee ? (
             <Advocate
-              key={advocate.id}
-              name={advocate.name}
-              title={advocate.title}
-              company={advocate.company}
-              initials={advocate.initials}
-              isSelected={selectedAdvocate === advocate}
+              key={employee.id}
+              name={employee.first_name + " " + employee.last_name}
+              title={employee.position}
+              company={jobInfo.companyName}
+              initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
+              email={employee.email}
+              isSelected={selectedAdvocate === employee}
               isLoading={isLoading}
-              linkedin={advocate.linkedin}
-              onCompose={() => handleCompose(advocate)}
+              linkedin={employee.source_page}
+              onCompose={() => handleCompose(employee)}
               onSendEmail={handleSendEmail}
               AIEmail={AIEmail}
               isLoadingEmail={isLoadingEmail}
