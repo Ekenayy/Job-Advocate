@@ -144,9 +144,9 @@ export const searchDomainEmployees = async (
             return null;
           }
           
-          // Poll the result URL until we get emails
+          // Poll the result URL until we get emails - use longer timeout for email searches
           const resultUrl = searchResponse.data.links.result;
-          const emailResult = await pollForResults(resultUrl, tokenData.access_token);
+          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 15, 3000);
           
           console.log(`Email result for ${prospect.first_name}:`, emailResult);
           
@@ -198,7 +198,8 @@ export const searchDomainEmployees = async (
 const pollForResults = async (
   resultUrl: string,
   accessToken: string,
-  maxAttempts = 5
+  maxAttempts = 10, 
+  initialDelay = 2000  // Start with a 2-second delay
 ): Promise<any> => {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const response = await fetch(resultUrl, {
@@ -208,11 +209,21 @@ const pollForResults = async (
     });
 
     if (response.status === 200) {
-      return await response.json();
+      const data = await response.json();
+      
+      // Check if the operation is still in progress
+      if (data.status === 'in_progress') {
+        console.log(`Poll attempt ${attempt + 1}/${maxAttempts}: Operation still in progress`);
+        // Wait before next attempt (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, attempt)));
+        continue;
+      }
+      
+      return data;
     }
 
     // Wait before next attempt (exponential backoff)
-    await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+    await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(1.5, attempt)));
   }
 
   throw new Error('Email search timed out');
