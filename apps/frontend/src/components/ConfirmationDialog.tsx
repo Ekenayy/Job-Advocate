@@ -5,16 +5,12 @@ interface ConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   isLoading: boolean;
-  error: string | Error | null;
-  setError: (error: string | Error | null) => void;
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ 
   onClose, 
   onConfirm, 
   isLoading,
-  error,
-  setError
 }) => {
   
   if (!isLoading) {

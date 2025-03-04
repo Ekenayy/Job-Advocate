@@ -173,7 +173,7 @@ const ContentApp: React.FC = () => {
     try {
       const gmailService = GmailService.getInstance();
       await gmailService.sendEmail(
-        `${selectedAdvocate.first_name} <${selectedAdvocate.email || 'advocate@example.com'}>`,
+        `${selectedAdvocate.first_name} <${import.meta.env.VITE_ENVIRONMENT === 'development' ? 'ekene@joifulhealth.io' : selectedAdvocate.email || 'advocate@example.com'}>`,
         subject,
         content,
         "Ekene"
@@ -199,8 +199,6 @@ const ContentApp: React.FC = () => {
           onClose={() => setShowConfirmation(false)}
           onConfirm={fetchJobInfoAndEmployees}
           isLoading={isLoading}
-          error={error}
-          setError={setError}
         />
         {error && (
           <div className="mt-4 p-4 bg-red-50 border border-red-400 rounded-md">
