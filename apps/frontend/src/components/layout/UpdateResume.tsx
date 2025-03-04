@@ -26,6 +26,7 @@ const UpdateResume = () => {
     const formData = new FormData();
     formData.append('resume', updatedResumeFile);
     formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad'); // TODO: Get from Clerk
+    formData.append('update', 'true');
 
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/resume`, {
@@ -37,6 +38,7 @@ const UpdateResume = () => {
 
       if (resumeResponse.error) {
         setError(resumeResponse.error);
+        setIsLoading(false);
         return;
       }
 
@@ -47,6 +49,7 @@ const UpdateResume = () => {
       setError('Failed to upload resume');
     } finally {
       setIsLoading(false);
+      setUpdatedResumeFile(null);
     }
   };
 
