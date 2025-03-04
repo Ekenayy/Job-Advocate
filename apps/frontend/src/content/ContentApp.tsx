@@ -4,7 +4,7 @@ import ConfirmationDialog from "../components/ConfirmationDialog";
 import { Employee } from "../types/Employee";
 import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
-
+import { ErrorWithDetails } from "../types/Error";
 interface Advocate {
   id: number;
   name: string;
@@ -22,7 +22,7 @@ const ContentApp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
-  const [_error, setError] = useState<string | Error | null>(null);
+  const [error, setError] = useState<string | Error | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(true);
   const [jobInfo, setJobInfo] = useState<{
     companyBackground: string;
@@ -40,6 +40,8 @@ const ContentApp: React.FC = () => {
 
   const fetchJobInfoAndEmployees = async () => {
     setIsLoading(true);
+    setError(null); // Clear previous errors
+    
     try {
       // Get current tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -75,7 +77,15 @@ const ContentApp: React.FC = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch employees');
+        const errorData = await response.json();
+        console.log('errorData response is not OK', errorData);
+        setError(errorData.error);
+        throw new ErrorWithDetails(
+          errorData.error || 'Failed to fetch employees',
+          errorData.details,
+          errorData.suggestions,
+          errorData.code
+        );
       }
 
       const employees = await response.json();
@@ -84,7 +94,16 @@ const ContentApp: React.FC = () => {
 
     } catch (error) {
       console.error('Error:', error);
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      if (error instanceof ErrorWithDetails) {
+        setError(error);
+      } else {
+        setError(new ErrorWithDetails(
+          error instanceof Error ? error.message : 'An error occurred',
+          'We encountered an unexpected error',
+          ['Try refreshing the page', 'Make sure you\'re on a job posting page'],
+          'UNKNOWN_ERROR'
+        ));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +199,16 @@ const ContentApp: React.FC = () => {
           onClose={() => setShowConfirmation(false)}
           onConfirm={fetchJobInfoAndEmployees}
           isLoading={isLoading}
+          error={error}
+          setError={setError}
         />
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-400 rounded-md">
+            <p className="text-red-700 font-medium">
+              {error instanceof Error ? error.message : error}
+            </p>
+          </div>
+        )}  
       </div>
     );
   }
@@ -232,5 +260,8 @@ const ContentApp: React.FC = () => {
     </div>
   );
 };
+
+// Custom error class to handle structured error responses
+
 
 export default ContentApp;

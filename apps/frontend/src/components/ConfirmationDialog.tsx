@@ -5,13 +5,18 @@ interface ConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   isLoading: boolean;
+  error: string | Error | null;
+  setError: (error: string | Error | null) => void;
 }
 
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ 
   onClose, 
   onConfirm, 
-  isLoading 
+  isLoading,
+  error,
+  setError
 }) => {
+  
   if (!isLoading) {
     return (
       <div className="p-4 flex flex-col items-center">
