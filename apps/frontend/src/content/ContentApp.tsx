@@ -79,7 +79,7 @@ const ContentApp: React.FC = () => {
       if (!response.ok) {
         const errorData = await response.json();
         console.log('errorData response is not OK', errorData);
-        setError(errorData.error);
+        setError(errorData.details);
         throw new ErrorWithDetails(
           errorData.error || 'Failed to fetch employees',
           errorData.details,
@@ -95,7 +95,7 @@ const ContentApp: React.FC = () => {
     } catch (error) {
       console.error('Error:', error);
       if (error instanceof ErrorWithDetails) {
-        setError(error);
+        setError(error.details);
       } else {
         setError(new ErrorWithDetails(
           error instanceof Error ? error.message : 'An error occurred',
