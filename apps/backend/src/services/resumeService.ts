@@ -3,7 +3,6 @@ import { supabase } from './supabaseClient';
 export const resumeService = {
   createResume: async (resumeData: any, user_id: string, raw_text: string) => {
     try {
-      console.log('Creating resume for user:', user_id);
       const { data, error } = await supabase
         .from('resumes')
         .insert({parsed_data: resumeData, user_id: user_id, raw_text: raw_text})
@@ -24,7 +23,6 @@ export const resumeService = {
   
   deleteResume: async (resumeId: number) => {
     try {
-      console.log('Deleting resume with ID:', resumeId);
       const { error } = await supabase
         .from('resumes')
         .delete()
@@ -46,7 +44,6 @@ export const resumeService = {
     try {
       if (resumeIds.length === 0) return true;
       
-      console.log(`Deleting ${resumeIds.length} resumes with IDs:`, resumeIds);
       const { error } = await supabase
         .from('resumes')
         .delete()
@@ -67,7 +64,6 @@ export const resumeService = {
   updateResume: async (resumeData: any, user_id: string, raw_text: string) => {
     try {
       // First check if user has any resumes
-      console.log('Checking for existing resumes for user:', user_id);
       const { data: existingResumes, error: fetchError } = await supabase
         .from('resumes')
         .select('id, created_at')
@@ -78,14 +74,11 @@ export const resumeService = {
         console.error('Error fetching existing resumes:', fetchError);
         throw fetchError;
       }
-
-      console.log(`Found ${existingResumes?.length || 0} existing resumes`);
       
       // If user has resumes
       if (existingResumes && existingResumes.length > 0) {
         // Keep the most recent resume and delete others if there are multiple
         if (existingResumes.length > 1) {
-          console.log(`Cleaning up ${existingResumes.length - 1} older resumes`);
           const mostRecentId = existingResumes[0]?.id;
           const idsToDelete = existingResumes.slice(1).map(resume => resume.id);
           
