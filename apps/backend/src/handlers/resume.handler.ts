@@ -16,6 +16,7 @@ export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply
 
   user_id = (file.fields.user_id as any)?.value;
   const updateExisting = (file.fields.update as any)?.value === 'true';
+  console.log('updateExisting', updateExisting);
 
   const buffer = await file.toBuffer();
   const blob = new Blob([buffer], { type: file.mimetype });
