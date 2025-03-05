@@ -1,15 +1,23 @@
 import {
-    API_KEY_OPENAI,
-    API_KEY_SUPABASE,
-    SUPABASE_URL,
-    RESEND_API_KEY
-} from './environmentVariables';
+  API_KEY_OPENAI,
+  API_KEY_SUPABASE,
+  SUPABASE_URL,
+  RESEND_API_KEY,
+  // HUNTER_API_KEY,
+  SNOV_CLIENT_ID,
+  SNOV_CLIENT_SECRET,
+  ANTHROPIC_API_KEY,
+} from "./environmentVariables";
 
 // Import OpenAI mmodels later
 
 export {
-    API_KEY_OPENAI,
-    API_KEY_SUPABASE,
-    SUPABASE_URL,
-    RESEND_API_KEY
+  API_KEY_OPENAI,
+  API_KEY_SUPABASE,
+  SUPABASE_URL,
+  RESEND_API_KEY,
+  // HUNTER_API_KEY,
+  SNOV_CLIENT_ID,
+  SNOV_CLIENT_SECRET,
+  ANTHROPIC_API_KEY,
 };
