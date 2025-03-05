@@ -8,20 +8,6 @@ interface Employee {
   email: string;
 }
 
-interface Prospect {
-  first_name: string;
-  last_name: string;
-  position: string;
-  source_page: string;
-  emails: {
-    searching_date: string;
-    emails: Array<{
-      email: string;
-      smtp_status: string;
-    }>;
-  };
-}
-
 export const searchDomainEmployees = async (
   domain: string,
   jobTitle: string,
@@ -144,9 +130,10 @@ export const searchDomainEmployees = async (
             return null;
           }
           
-          // Poll the result URL until we get emails
+          // Poll the result URL until we get emails - use longer timeout for email searches
+          // Pass true for checkValidEmails to enable early termination when valid emails are found
           const resultUrl = searchResponse.data.links.result;
-          const emailResult = await pollForResults(resultUrl, tokenData.access_token);
+          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 15, 3000, true);
           
           console.log(`Email result for ${prospect.first_name}:`, emailResult);
           
@@ -180,7 +167,24 @@ export const searchDomainEmployees = async (
 
     // Process all prospects in parallel
     const employeePromises = prospectsResult.data.map(getProspectEmails);
-    const employees = await Promise.all(employeePromises);
+    
+    // Use a more efficient approach that stops when we have enough valid employees
+    const employees: (Employee | null)[] = [];
+    const minRequiredEmployees = 7; // Set minimum threshold
+    
+    // Process promises in batches to check if we have enough results
+    for (let i = 0; i < employeePromises.length; i++) {
+      const employee = await employeePromises[i];
+      if (employee) {
+        employees.push(employee);
+        
+        // If we have enough valid employees, stop processing the rest
+        if (employees.filter(Boolean).length >= minRequiredEmployees) {
+          console.log(`Found ${minRequiredEmployees} valid employees, stopping early`);
+          break;
+        }
+      }
+    }
     
     if (employees.length === 0) {
       throw new Error('No valid employees found with all required fields');
@@ -194,11 +198,13 @@ export const searchDomainEmployees = async (
   }
 };
 
-// Helper function to poll for results
+// Helper function to poll for results with early termination
 const pollForResults = async (
   resultUrl: string,
   accessToken: string,
-  maxAttempts = 5
+  maxAttempts = 10, 
+  initialDelay = 2000,  // Start with a 2-second delay
+  checkValidEmails = false // Whether to check for valid emails in the response
 ): Promise<any> => {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const response = await fetch(resultUrl, {
@@ -208,11 +214,46 @@ const pollForResults = async (
     });
 
     if (response.status === 200) {
-      return await response.json();
+      const data = await response.json();
+      
+      console.log(`Poll attempt ${attempt + 1}/${maxAttempts}: Status: ${data.status}, Data:`, 
+        checkValidEmails ? JSON.stringify(data).substring(0, 200) + '...' : 'Not checking emails');
+      
+      // Check if the operation is still in progress
+      if (data.status === 'in_progress') {
+        // If we're checking for emails and have partial results with valid emails, return early
+        if (checkValidEmails) {
+          // Check various possible response structures
+          const emails = data.data?.emails || data.emails || [];
+          const hasValidEmails = emails.length > 0 && 
+            emails.some((e: any) => e.email && (e.smtp_status === 'valid' || e.smtp_status === 'unknown'));
+          
+          if (hasValidEmails) {
+            console.log(`Found valid emails in partial results after ${attempt + 1} attempts, returning early`);
+            return data;
+          }
+          
+          // Also check if there's a direct email field
+          if (data.data?.email || data.email) {
+            console.log(`Found direct email in partial results after ${attempt + 1} attempts, returning early`);
+            return data;
+          }
+        }
+        
+        // Wait before next attempt (exponential backoff)
+        const delay = initialDelay * Math.pow(1.5, attempt);
+        console.log(`Waiting ${delay}ms before next poll attempt`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      
+      return data;
     }
 
     // Wait before next attempt (exponential backoff)
-    await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+    const delay = initialDelay * Math.pow(1.5, attempt);
+    console.log(`Received non-200 status (${response.status}), waiting ${delay}ms before retry`);
+    await new Promise(resolve => setTimeout(resolve, delay));
   }
 
   throw new Error('Email search timed out');

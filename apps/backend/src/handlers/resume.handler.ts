@@ -2,7 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
 import AIAgentPlatformManager from '../functions/AIAgentPlatformManager';
-import { supabase } from '../services/supabaseClient';
+import { resumeService } from '../services/resumeService';
 import { Resume } from '../types/resume.types';
 
 export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<Resume> => {
@@ -15,6 +15,7 @@ export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply
   }
 
   user_id = (file.fields.user_id as any)?.value;
+  const updateExisting = (file.fields.update as any)?.value === 'true';
 
   const buffer = await file.toBuffer();
   const blob = new Blob([buffer], { type: file.mimetype });
@@ -37,35 +38,38 @@ export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply
     // Creates a JSON object from the resume
     const resumeData = await AIAgentPlatformManager.resumeAgent(text);
 
-    // Handle file upload and job title
-    // Store in database/storage
-    const resume = await createResume(resumeData, user_id, text);
+    // Store in database - either update or create
+    let resume;
+    if (updateExisting) {
+      resume = await resumeService.updateResume(resumeData, user_id, text);
+    } else {
+      resume = await resumeService.createResume(resumeData, user_id, text);
+    }
 
     reply.status(200);
     return resume;
   } catch (error) {
-    console.error('Error handling onboarding:', error);
+    console.error('Error handling resume:', error);
     return reply.status(500).send({ error: 'Internal server error' });
   }
 };
 
-const createResume = async (resumeData: any, user_id: string, raw_text: string) => {
-  
+// Get resume by user ID
+export const getResumeHandler = async (
+  request: FastifyRequest<{ Params: { userId: string } }>,
+  reply: FastifyReply
+) => {
   try {
-    const { data, error } = await supabase
-      .from('resumes')
-      .insert({parsed_data: resumeData, user_id: user_id, raw_text: raw_text})
-      .select(`*`)
-      .single();
-
-    if (error) {
-      console.error('Error creating resume:', error);
-      throw error;
+    const { userId } = request.params;
+    const resume = await resumeService.getResumeByUserId(userId);
+    
+    if (!resume) {
+      return reply.status(404).send({ error: 'Resume not found' });
     }
-
-    return data;
+    
+    return reply.status(200).send(resume);
   } catch (error) {
-    console.error('Error creating resume:', error);
-    throw error;
+    console.error('Error fetching resume:', error);
+    return reply.status(500).send({ error: 'Internal server error' });
   }
-}
+};

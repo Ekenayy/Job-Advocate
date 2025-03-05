@@ -10,8 +10,9 @@ interface ConfirmationDialogProps {
 const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ 
   onClose, 
   onConfirm, 
-  isLoading 
+  isLoading,
 }) => {
+  
   if (!isLoading) {
     return (
       <div className="p-4 flex flex-col items-center">
