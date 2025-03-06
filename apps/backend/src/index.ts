@@ -14,8 +14,6 @@ fastify.register(cors, { origin: '*' });
 fastify.register(helmet);
 fastify.register(multipart);
 
-await registerRoutes(fastify);
-
 fastify.get('/api/health', async (request, reply) => {
   return { status: 'ok' };
 });
@@ -25,6 +23,8 @@ fastify.get('/', async (request, reply) => {
 });  
 
 const start = async () => {
+  await registerRoutes(fastify);
+
   try {
       await fastify.listen({ port: 3000, host: '0.0.0.0' });
   } catch (err) {
