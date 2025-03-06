@@ -1,4 +1,14 @@
-import { nextJsConfig } from "@repo/eslint-config/next-js";
-
-/** @type {import("eslint").Linter.Config} */
-export default nextJsConfig;
+module.exports = {
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:prettier/recommended'
+  ],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
+  root: true,
+  env: {
+    node: true,
+    es2022: true
+  }
+};
