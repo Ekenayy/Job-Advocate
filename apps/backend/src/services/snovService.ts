@@ -170,7 +170,7 @@ export const searchDomainEmployees = async (
     
     // Use a more efficient approach that stops when we have enough valid employees
     const employees: (Employee | null)[] = [];
-    const minRequiredEmployees = 7; // Set minimum threshold
+    const minRequiredEmployees = 5; // Set minimum threshold
     
     // Process promises in batches to check if we have enough results
     for (let i = 0; i < employeePromises.length; i++) {

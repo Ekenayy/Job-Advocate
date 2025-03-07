@@ -26,7 +26,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (userEmails) setUserEmails(userEmails);
 
     if (!userEmails) {
-      console.log('no user emails found, fetching from backend');
       const emails = await getEmails('86318221-2f8e-43e2-822c-2d76e94b7aad');
       setContextUserEmails(emails);
     }

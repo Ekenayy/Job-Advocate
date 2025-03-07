@@ -242,36 +242,37 @@ const ContentApp: React.FC = () => {
       </div>
       <div className="flex flex-col gap-14">
       { advocates.length > 0 ? advocates.map((employee) => {
-          if (emailedAdvocates.includes(parseInt(employee.id))) {
-            return (
-              <div key={employee.id} className="bg-green-50 p-4 rounded-lg">
-                <p className="text-green-600 font-medium">
-                  Email sent successfully to {employee.first_name + " " + employee.last_name} ✓
-                </p>
-                <p className="text-gray-600 mt-2 text-sm">
-                  We suggest waiting at least three days before continuing your outreach and follow ups.
-                </p>
-              </div>
-            );
-          }
-
-          return selectedAdvocate === null || selectedAdvocate === employee ? (
-            <Advocate
-              key={employee.id}
-              name={employee.first_name + " " + employee.last_name}
-              title={employee.position}
-              company={jobInfo.companyName}
-              initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
-              email={employee.email}
-              isSelected={selectedAdvocate === employee}
-              isLoading={isLoading}
-              linkedin={employee.source_page}
-              onCompose={() => handleCompose(employee)}
-              onSendEmail={handleSendEmail}
-              AIEmail={AIEmail}
-              isLoadingEmail={isLoadingEmail}
-            />
-          ) : null;
+          return (
+            <React.Fragment key={employee.id}>
+              {emailedAdvocates.includes(parseInt(employee.id)) ? (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-green-600 font-medium">
+                    Email sent successfully to {employee.first_name + " " + employee.last_name} ✓
+                  </p>
+                  <p className="text-gray-600 mt-2 text-sm">
+                    We suggest waiting at least three days before continuing your outreach and follow ups.
+                  </p>
+                </div>
+              ) : (
+                (selectedAdvocate === null || selectedAdvocate === employee) && (
+                  <Advocate
+                    name={employee.first_name + " " + employee.last_name}
+                    title={employee.position}
+                    company={jobInfo.companyName}
+                    initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
+                    email={employee.email}
+                    isSelected={selectedAdvocate === employee}
+                    isLoading={isLoading}
+                    linkedin={employee.source_page}
+                    onCompose={() => handleCompose(employee)}
+                    onSendEmail={handleSendEmail}
+                    AIEmail={AIEmail}
+                    isLoadingEmail={isLoadingEmail}
+                  />
+                )
+              )}
+            </React.Fragment>
+          );
         }) : (
           <div className="text-center text-gray-500">
             No advocates found for this job.
