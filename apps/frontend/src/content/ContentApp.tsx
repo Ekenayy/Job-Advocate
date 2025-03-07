@@ -22,7 +22,7 @@ const ContentApp: React.FC = () => {
 
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
-  const [emailedAdvocates, setEmailedAdvocates] = useState<number[]>([]);
+  const [emailedAdvocates, setEmailedAdvocates] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
@@ -193,7 +193,7 @@ const ContentApp: React.FC = () => {
       );
       
       if (response.status === 'success') {
-        setEmailedAdvocates(prev => [...new Set([...prev, parseInt(selectedAdvocate.id)])]);
+        setEmailedAdvocates([...emailedAdvocates, selectedAdvocate]);
         await createEmail("86318221-2f8e-43e2-822c-2d76e94b7aad", selectedAdvocate.email, subject, content);
         console.log("Email sent successfully");
       } else {
@@ -244,7 +244,7 @@ const ContentApp: React.FC = () => {
       { advocates.length > 0 ? advocates.map((employee) => {
           return (
             <React.Fragment key={employee.id}>
-              {emailedAdvocates.includes(parseInt(employee.id)) ? (
+              {emailedAdvocates.some(advocate => advocate.email === employee.email) ? (
                 <div className="bg-green-50 p-4 rounded-lg">
                   <p className="text-green-600 font-medium">
                     Email sent successfully to {employee.first_name + " " + employee.last_name} ✓
