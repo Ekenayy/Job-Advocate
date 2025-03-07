@@ -3,7 +3,8 @@
 import { FastifyInstance } from 'fastify';
 import { createEmailHandler } from '../handlers/email.handler';
 import { CreateEmailSchema, GenerateAIEmailSchema } from '../schemas/email.schema';
-import { generateEmailHandler } from '../handlers/email.handler';
+import { generateEmailHandler, getEmailsHandler } from '../handlers/email.handler';
+import { Type } from '@sinclair/typebox';
 
 export default async function emailRoutes(fastify: FastifyInstance) {
     fastify.post(
@@ -23,5 +24,16 @@ export default async function emailRoutes(fastify: FastifyInstance) {
         }
       },
       generateEmailHandler
+    );
+    fastify.get(
+      '/email/:user_id',
+      {
+        schema: {
+          params: Type.Object({
+            user_id: Type.String()
+          })
+        }
+      },
+      getEmailsHandler
     );
 }

@@ -4,22 +4,32 @@ import { Resume } from '../types/Resume';
 import { getFromStorage, setToStorage } from '../utils/environment';
 import { useUser as useClerkUser } from '@clerk/chrome-extension';
 import { Employee } from '../types/Employee';
-
+import { Email } from '../types/Email';
+import { getEmails } from '../server/Email';
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [contextResume, setContextResume] = useState<Resume | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [lastAdvocates, setLastAdvocates] = useState<Employee[]>([]);
+  const [userEmails, setUserEmails] = useState<Email[]>([]);
 
   const getStorageData = async () => {
     const resume = await getFromStorage<Resume>('resume');
     const onboardingStatus = await getFromStorage<boolean>('isOnboardingComplete');
     const lastAdvocates = await getFromStorage<Employee[]>('lastAdvocates');
+    const userEmails = await getFromStorage<Email[]>('userEmails');
 
     if (resume) setContextResume(resume);
     if (onboardingStatus) setIsOnboardingComplete(onboardingStatus);
     if (lastAdvocates) setLastAdvocates(lastAdvocates);
+    if (userEmails) setUserEmails(userEmails);
+
+    if (!userEmails) {
+      console.log('no user emails found, fetching from backend');
+      const emails = await getEmails('86318221-2f8e-43e2-822c-2d76e94b7aad');
+      setContextUserEmails(emails);
+    }
   };
 
   const setResume = async (resume: Resume) => {
@@ -38,6 +48,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     await setToStorage('lastAdvocates', advocates);
   };
 
+  const setContextUserEmails = async (emails: Email[]) => {
+    setUserEmails(emails);
+    await setToStorage('userEmails', emails);
+  };
+
   useEffect(() => {
     getStorageData();
   }, []);
@@ -49,7 +64,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setResume,
       completeOnboarding,
       lastAdvocates,
-      setLastContextAdvocates
+      setLastContextAdvocates,
+      userEmails,
+      setContextUserEmails
     }}>
       {children}
     </UserContext.Provider>

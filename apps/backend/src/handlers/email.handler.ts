@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { supabase } from '../services/supabaseClient';
 import { CreateEmailSchemaType } from '../schemas/email.schema';
-import { SendEmailInput, EmailStatus } from '../types/email.types';
+import { SendEmailInput, EmailStatus, Email } from '../types/email.types';
 import { GenerateAIEmailType } from '../schemas/email.schema';
 import AIAgentPlatformManager from '../functions/AIAgentPlatformManager';
 
@@ -88,4 +88,22 @@ export const generateEmailHandler = async (request: FastifyRequest<{ Body: Gener
     console.error('Error generating email:', error);
     return reply.status(500).send({ error: 'Internal server error' });
   }
+}
+
+export const getEmailsHandler = async (request: FastifyRequest<{ Params: { user_id: string } }>, reply: FastifyReply) => {
+  const { user_id } = request.params;
+
+  // Use the Email type with the Supabase query
+  const { data, error } = await supabase
+    .from('emails')
+    .select('id, status, error_message')
+    .eq('user_id', user_id)
+    .returns<SendEmailInput[]>();
+
+  if (error) {
+    console.error('Error fetching emails:', error);
+    return reply.status(500).send({ error: 'Internal server error' });
+  }
+
+  return reply.status(200).send(data);
 }

@@ -1,5 +1,6 @@
 import { Resume } from "./Resume";
 import { Employee } from "./Employee";
+import { Email } from "./Email";
 export interface User {
   id: string;
   name: string;
@@ -14,4 +15,6 @@ export interface UserContextType {
   completeOnboarding: () => Promise<void>;
   lastAdvocates: Employee[];
   setLastContextAdvocates: (advocates: Employee[]) => Promise<void>;
+  userEmails: Email[];
+  setContextUserEmails: (emails: Email[]) => Promise<void>;
 }

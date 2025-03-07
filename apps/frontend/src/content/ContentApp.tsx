@@ -6,7 +6,7 @@ import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
 import { ErrorWithDetails } from "../types/Error";
 import { FaSearchengin } from "react-icons/fa6";
-import createEmail from "../server/Email";
+import { createEmail } from "../server/Email";
 interface Advocate {
   id: number;
   name: string;

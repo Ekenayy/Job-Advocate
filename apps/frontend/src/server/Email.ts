@@ -1,4 +1,4 @@
-const createEmail = async (user_id: string, to_email: string, subject: string, email_body: string) => {
+export const createEmail = async (user_id: string, to_email: string, subject: string, email_body: string) => {
   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email`, {
     method: 'POST',
     headers: {
@@ -14,4 +14,7 @@ const createEmail = async (user_id: string, to_email: string, subject: string, e
   return response.json();
 };
 
-export default createEmail;
+export const getEmails = async (user_id: string) => {
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/${user_id}`);
+  return response.json();
+};
