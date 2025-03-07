@@ -4,7 +4,8 @@ import  TextareaAutosize from 'react-textarea-autosize';
 import { PropagateLoader } from 'react-spinners';
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
-
+import { Paywall } from './paywall/Paywall';
+import { usePaywall } from '../context/PaywallProvider';
 interface AdvocateProps {
   name: string;
   title: string;
@@ -23,6 +24,21 @@ interface AdvocateProps {
 const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail, email }) => {
   const [emailContent, setEmailContent] = useState(AIEmail?.body || '');
   const [emailSubject, setEmailSubject] = useState(AIEmail?.subject || '');
+
+  const { hasAccess, setSubscriptionTier } = usePaywall()
+
+  const userHasAccess = hasAccess("premium")
+
+  const handleSubscribe = (plan: string) => {
+    console.log(`Processing subscription for plan: ${plan}`)
+    // In a real app, you would redirect to a payment processor
+    // For demo purposes, we'll just update the subscription tier
+    if (plan.includes("premium")) {
+      setSubscriptionTier("premium")
+    } else {
+      setSubscriptionTier("basic")
+    }
+  }
 
   useEffect(() => {
     if (AIEmail) {
@@ -68,9 +84,15 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           className="w-full p-2 border rounded-md bg-white"
           minRows={15}
         />}
-        <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
-          {isLoading ? <PropagateLoader color="#fff" size={10} className="p-3"/> : <span>Send Email</span>}
-        </button>
+        <Paywall
+          isLocked={!userHasAccess}
+          onSubscribe={handleSubscribe}
+        >
+          <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
+            {isLoading ? 
+            <PropagateLoader color="#fff" size={10} className="p-3"/> : <span>Send Email</span>}
+          </button>
+        </Paywall>
       </form>
       }
       {!isSelected && <div className="flex">
