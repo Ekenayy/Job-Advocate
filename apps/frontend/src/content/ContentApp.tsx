@@ -231,6 +231,8 @@ const ContentApp: React.FC = () => {
     );
   }
 
+  // console.log('user', user)
+
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">

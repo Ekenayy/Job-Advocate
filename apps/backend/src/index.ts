@@ -4,6 +4,9 @@ import helmet from '@fastify/helmet';
 import registerRoutes from './router';
 import { swaggerSetup } from './middleware/swagger';
 import multipart from '@fastify/multipart';
+import { clerkPlugin } from '@clerk/fastify'
+import { CLERK_SECRET_KEY } from './constants/environmentVariables';
+import { CLERK_PUBLISHABLE_KEY } from './constants/environmentVariables';
 
 const fastify = Fastify({
   logger: true,
@@ -13,7 +16,10 @@ swaggerSetup(fastify);
 fastify.register(cors, { origin: '*' });
 fastify.register(helmet);
 fastify.register(multipart);
-
+fastify.register(clerkPlugin, {
+  publishableKey: CLERK_PUBLISHABLE_KEY,
+  secretKey: CLERK_SECRET_KEY,
+})
 fastify.get('/api/health', async (request, reply) => {
   return { status: 'ok' };
 });

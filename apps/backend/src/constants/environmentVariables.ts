@@ -8,3 +8,5 @@ export const RESEND_API_KEY = process.env.RESEND_API_KEY!;
 export const SNOV_CLIENT_ID = process.env.SNOV_CLIENT_ID;
 export const SNOV_CLIENT_SECRET = process.env.SNOV_CLIENT_SECRET;
 export const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
+export const CLERK_PUBLISHABLE_KEY = process.env.CLERK_PUBLISHABLE_KEY!;
+export const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY!;

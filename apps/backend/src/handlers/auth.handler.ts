@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { supabase } from '../services/supabaseClient';
 import { WebhookEvent } from '@clerk/backend';
+import { clerkClient } from '@clerk/fastify'
 
 export const webhookHandler = async (request: FastifyRequest, reply: FastifyReply) => {
   const evt = request.body as WebhookEvent;
@@ -18,11 +19,23 @@ export const webhookHandler = async (request: FastifyRequest, reply: FastifyRepl
         name: full_name,
         created_at: new Date().toISOString()
       })
+      .select()
       .single();
 
     if (error) {
       console.error('Error creating user:', error);
       return reply.status(500).send({ error: 'Failed to create user' });
+    }
+
+    const userData = data as { id: string };
+    
+    const updatedUser = await clerkClient.users.updateUser(id, {
+      externalId: userData.id
+    })
+
+    if (!updatedUser) {
+      console.error('Failed to update user');
+      // return reply.status(500).send({ error: 'Failed to update user' });
     }
 
     return reply.status(200).send(data);
