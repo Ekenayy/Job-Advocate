@@ -24,7 +24,7 @@ interface PaywallProps {
 export function Paywall({
   children,
   isLocked = true,
-  buttonText = "Send Booty",
+  buttonText = "Send Paywall",
   onSubscribe,
 }: PaywallProps) {
   const [selectedPlan, setSelectedPlan] = useState("yearly")

@@ -6,7 +6,7 @@ import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
 import { ErrorWithDetails } from "../types/Error";
 import { FaSearchengin } from "react-icons/fa6";
-
+import createEmail from "../server/Email";
 interface Advocate {
   id: number;
   name: string;
@@ -39,7 +39,6 @@ const ContentApp: React.FC = () => {
     companyName: "",
     potentialAdvocates: []
   });
-
 
   useEffect(() => {
     if (lastAdvocates.length > 0) {
@@ -186,15 +185,21 @@ const ContentApp: React.FC = () => {
 
     try {
       const gmailService = GmailService.getInstance();
-      await gmailService.sendEmail(
-        `${selectedAdvocate.first_name} <${import.meta.env.VITE_ENVIRONMENT === 'development' ? 'ekene@joifulhealth.io' : selectedAdvocate.email || 'advocate@example.com'}>`,
+      const response = await gmailService.sendEmail(
+        `${selectedAdvocate.first_name} <${import.meta.env.VITE_ENVIRONMENT === 'development' ? 'ekene@joifulhealth.io' : selectedAdvocate.email}>`,
         subject,
         content,
-        "Ekene"
+        user?.firstName || ""
       );
+      
+      if (response.status === 'success') {
+        setEmailedAdvocates(prev => [...new Set([...prev, parseInt(selectedAdvocate.id)])]);
+        await createEmail("86318221-2f8e-43e2-822c-2d76e94b7aad", selectedAdvocate.email, subject, content);
+        console.log("Email sent successfully");
+      } else {
+        setError("There was an error sending the email. Please try again.");
+      }
 
-      setEmailedAdvocates(prev => [...new Set([...prev, parseInt(selectedAdvocate.id)])]);
-      console.log("Email sent successfully");
       setIsLoading(false);
       setSelectedAdvocate(null);
       
