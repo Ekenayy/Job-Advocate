@@ -1,6 +1,7 @@
 import React from 'react';
 import { PropagateLoader } from 'react-spinners';
-
+import { Paywall } from './paywall/Paywall';
+import { usePaywall } from '../context/PaywallProvider';
 interface ConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
@@ -12,7 +13,21 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   onConfirm, 
   isLoading,
 }) => {
-  
+  const { hasAccess, setSubscriptionTier } = usePaywall()
+
+  const userHasAccess = hasAccess("premium")
+
+  const handleSubscribe = (plan: string) => {
+    console.log(`Processing subscription for plan: ${plan}`)
+    // In a real app, you would redirect to a payment processor
+    // For demo purposes, we'll just update the subscription tier
+    if (plan.includes("premium")) {
+      setSubscriptionTier("premium")
+    } else {
+      setSubscriptionTier("basic")
+    }
+  }
+
   if (!isLoading) {
     return (
       <div className="p-4 flex flex-col items-center">
@@ -33,6 +48,18 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
             No
           </button>
         </div>
+        <Paywall
+          title="Premium Feature Locked"
+          description="Subscribe to unlock this premium feature"
+          isLocked={!userHasAccess}
+          onSubscribe={handleSubscribe}
+        >
+          <div>
+            <h2>
+              You need to be a paid user to contact potential advocates at this company.
+            </h2>
+          </div>
+        </Paywall>
       </div>
     );
   }
