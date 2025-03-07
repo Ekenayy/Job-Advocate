@@ -1,4 +1,6 @@
-export const createEmail = async (user_id: string, to_email: string, subject: string, email_body: string) => {
+import { Email } from '../types/Email';
+
+export const createEmail = async (user_id: string, to_email: string, subject: string, email_body: string): Promise<Email> => {
   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email`, {
     method: 'POST',
     headers: {
@@ -22,6 +24,6 @@ export const getEmails = async (user_id: string) => {
   if (!response.ok) {
     console.error('Failed to get emails in backend but will not throw error', response);
   }
-  
+
   return response.json();
 };

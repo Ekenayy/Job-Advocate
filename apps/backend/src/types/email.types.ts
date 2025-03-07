@@ -20,7 +20,7 @@ export interface CreateEmailInput {
 }
 
 export interface SendEmailInput {
-    email_id: number;
+    id: number;
     status: EmailStatus;
     error_message?: string;
 }

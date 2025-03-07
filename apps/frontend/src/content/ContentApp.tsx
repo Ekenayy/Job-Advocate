@@ -18,7 +18,7 @@ interface Advocate {
 }
 
 const ContentApp: React.FC = () => {
-  const { contextResume, user, lastAdvocates, setLastContextAdvocates } = useUser();
+  const { contextResume, user, lastAdvocates, setLastContextAdvocates, userEmails, setContextUserEmails } = useUser();
 
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
@@ -194,7 +194,8 @@ const ContentApp: React.FC = () => {
       
       if (response.status === 'success') {
         setEmailedAdvocates([...emailedAdvocates, selectedAdvocate]);
-        await createEmail("86318221-2f8e-43e2-822c-2d76e94b7aad", selectedAdvocate.email, subject, content);
+        const databaseEmail = await createEmail("86318221-2f8e-43e2-822c-2d76e94b7aad", selectedAdvocate.email, subject, content);
+        setContextUserEmails([...userEmails, databaseEmail]);
         console.log("Email sent successfully");
       } else {
         setError("There was an error sending the email. Please try again.");

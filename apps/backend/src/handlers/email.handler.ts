@@ -32,7 +32,7 @@ export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateE
 
     // First cast to unknown, then to the expected type
     const responseData: SendEmailInput = {
-      email_id: (emailData as unknown as { id: number }).id,
+      id: (emailData as unknown as { id: number }).id,
       status: ((emailData as unknown as { status: EmailStatus }).status || 'pending') as EmailStatus,
       error_message: (emailData as unknown as { error_message?: string }).error_message || '' 
     };
