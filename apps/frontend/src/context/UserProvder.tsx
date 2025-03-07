@@ -3,19 +3,23 @@ import { UserContextType } from '../types/User';
 import { Resume } from '../types/Resume';
 import { getFromStorage, setToStorage } from '../utils/environment';
 import { useUser as useClerkUser } from '@clerk/chrome-extension';
+import { Employee } from '../types/Employee';
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [contextResume, setContextResume] = useState<Resume | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [lastAdvocates, setLastAdvocates] = useState<Employee[]>([]);
 
   const getStorageData = async () => {
     const resume = await getFromStorage<Resume>('resume');
     const onboardingStatus = await getFromStorage<boolean>('isOnboardingComplete');
+    const lastAdvocates = await getFromStorage<Employee[]>('lastAdvocates');
 
     if (resume) setContextResume(resume);
     if (onboardingStatus) setIsOnboardingComplete(onboardingStatus);
+    if (lastAdvocates) setLastAdvocates(lastAdvocates);
   };
 
   const setResume = async (resume: Resume) => {
@@ -29,6 +33,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     await setToStorage('isOnboardingComplete', true);
   };
 
+  const setLastContextAdvocates = async (advocates: Employee[]) => {
+    setLastAdvocates(advocates);
+    await setToStorage('lastAdvocates', advocates);
+  };
+
   useEffect(() => {
     getStorageData();
   }, []);
@@ -38,7 +47,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       contextResume, 
       isOnboardingComplete,
       setResume,
-      completeOnboarding 
+      completeOnboarding,
+      lastAdvocates,
+      setLastContextAdvocates
     }}>
       {children}
     </UserContext.Provider>
@@ -56,7 +67,7 @@ export const useUser = () => {
     ...context, 
     user, 
     isLoaded, 
-    isSignedIn 
+    isSignedIn,
   };
 };
 

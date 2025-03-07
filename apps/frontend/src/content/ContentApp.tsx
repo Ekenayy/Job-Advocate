@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Advocate from "../components/Advocate";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { Employee } from "../types/Employee";
@@ -18,6 +18,8 @@ interface Advocate {
 }
 
 const ContentApp: React.FC = () => {
+  const { contextResume, user, lastAdvocates, setLastContextAdvocates } = useUser();
+
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
   const [emailedAdvocates, setEmailedAdvocates] = useState<number[]>([]);
@@ -25,7 +27,7 @@ const ContentApp: React.FC = () => {
   const [isLoadingEmail, setIsLoadingEmail] = useState(false);
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [error, setError] = useState<string | Error | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(true);
+  const [showConfirmation, setShowConfirmation] = useState(!lastAdvocates.length);
   const [jobInfo, setJobInfo] = useState<{
     companyBackground: string;
     jobRequirements: string;
@@ -38,7 +40,12 @@ const ContentApp: React.FC = () => {
     potentialAdvocates: []
   });
 
-  const { contextResume, user } = useUser();
+
+  useEffect(() => {
+    if (lastAdvocates.length > 0) {
+      setAdvocates(lastAdvocates);
+    }
+  }, [lastAdvocates]);
 
   const fetchJobInfoAndEmployees = async () => {
     setIsLoading(true);
@@ -92,6 +99,7 @@ const ContentApp: React.FC = () => {
 
       const employees = await response.json();
       setAdvocates(employees);
+      setLastContextAdvocates(employees);
       setShowConfirmation(false);
 
     } catch (error) {
