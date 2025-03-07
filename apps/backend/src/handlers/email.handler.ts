@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { supabase } from '../services/supabaseClient';
 import { CreateEmailSchemaType } from '../schemas/email.schema';
-import { SendEmailInput } from '../types/email.types';
+import { SendEmailInput, EmailStatus } from '../types/email.types';
 import { GenerateAIEmailType } from '../schemas/email.schema';
 import AIAgentPlatformManager from '../functions/AIAgentPlatformManager';
 
@@ -9,30 +9,35 @@ export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateE
   
   try {
 
-    const { data, error } = await supabase
+    console.log("Creating email:", request.body);
+    const { data: emailData, error } = await supabase
       .from('emails')
       .insert(request.body)
       .select(
-        `*,
-        from:users(id, name, email),
-        to:advocates(id, first_name, last_name, email)
-        `
+        `*`,
       )
       .single();
 
-    console.log("Email created:", data);
+    console.log("Email created:", emailData);
 
     if (error) {
       reply.status(500).send({ error: error.message });
+      return;
     }
 
+    if (!emailData) {
+      reply.status(500).send({ error: "Failed to create email" });
+      return;
+    }
+
+    // First cast to unknown, then to the expected type
     const responseData: SendEmailInput = {
-      email_id: data.id,
-      status: data.status,
-      error_message: data.error_message
+      email_id: (emailData as unknown as { id: number }).id,
+      status: ((emailData as unknown as { status: EmailStatus }).status || 'pending') as EmailStatus,
+      error_message: (emailData as unknown as { error_message?: string }).error_message || '' 
     };
 
-    reply.status(201).send(responseData as SendEmailInput);
+    reply.status(201).send(responseData);
   } catch (error) {
       reply.status(500).send({ error: "Internal server error" });
   }

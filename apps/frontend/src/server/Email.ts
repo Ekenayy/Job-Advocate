@@ -1,6 +1,9 @@
 const createEmail = async (user_id: string, to_email: string, subject: string, email_body: string) => {
   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email`, {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({ user_id, to_email, subject, email_body, status: 'sent' }),
   });
   

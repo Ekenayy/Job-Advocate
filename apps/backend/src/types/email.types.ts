@@ -1,7 +1,6 @@
 export interface Email {
     id: number;
     user_id: string;
-    advocate_id: number | null;
     to_email: string;
     subject: string;
     email_body: string;
@@ -15,7 +14,6 @@ export type EmailStatus = 'pending' | 'sent' | 'failed' | 'delivered';
 
 export interface CreateEmailInput {
     user_id: string;
-    advocate_id: number | null;
     to_email: string;
     subject: string;
     email_body: string;
