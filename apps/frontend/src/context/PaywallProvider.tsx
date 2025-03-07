@@ -1,5 +1,5 @@
 import type React from "react"
-
+import { setToStorage, removeFromStorage, getFromStorage } from "../utils/environment"
 import { createContext, useContext, useState, useEffect } from "react"
 
 type SubscriptionTier = "free" | "basic" | "premium" | null
@@ -24,18 +24,25 @@ export function PaywallProvider({ children, initialTier = null }: PaywallProvide
   // In a real app, you would fetch the user's subscription status from your backend
   useEffect(() => {
     // Example: Load subscription from localStorage for demo purposes
-    const savedTier = localStorage.getItem("subscriptionTier") as SubscriptionTier
-    if (savedTier) {
-      setSubscriptionTier(savedTier)
+    const getSavedTier = async () => {
+      const savedTier = await getFromStorage<SubscriptionTier>("subscriptionTier")
+      if (savedTier) {
+        setSubscriptionTier(savedTier)
+      }
     }
+    getSavedTier()
   }, [])
 
   // Save subscription changes to localStorage for demo purposes
   useEffect(() => {
+    console.log('subscriptionTier', subscriptionTier)
     if (subscriptionTier) {
-      localStorage.setItem("subscriptionTier", subscriptionTier)
+      console.log('setting subscriptionTier', subscriptionTier)
+      setToStorage("subscriptionTier", subscriptionTier)
     } else {
-      localStorage.removeItem("subscriptionTier")
+      removeFromStorage("subscriptionTier")
+      //Remove after testing 
+      setSubscriptionTier('free')
     }
   }, [subscriptionTier])
 
