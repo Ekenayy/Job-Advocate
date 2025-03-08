@@ -22,7 +22,7 @@ export const PaywallProvider = ({ children }: { children: ReactNode }) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('free');
   const [emailsRemaining, setEmailsRemaining] = useState(5); // Free tier gets 5 emails
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [_isInitialized, setIsInitialized] = useState(false);
 
   // Check subscription status on mount and when user changes
   const checkSubscription = async () => {

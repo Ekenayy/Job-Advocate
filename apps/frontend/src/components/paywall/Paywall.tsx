@@ -29,7 +29,7 @@ export function Paywall({
   onSubscribe,
 }: PaywallProps) {
   const [selectedPlan, setSelectedPlan] = useState("yearly")
-  const [showPaywall, setShowPaywall] = useState(true)
+  const [showPaywall, _setShowPaywall] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useUser()
 
