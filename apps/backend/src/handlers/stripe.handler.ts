@@ -1,10 +1,9 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import Stripe from 'stripe';
 import { supabase } from '../services/supabaseClient';
-import { clerkClient } from '@clerk/fastify';
 import { STRIPE_SECRET_KEY, YEARLY_PRICE_ID, MONTHLY_PRICE_ID } from '../constants/environmentVariables';
+import  clerkClient  from '../services/clerkClient';
 
-// Initialize Stripe
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 const PRICE_IDS = {
