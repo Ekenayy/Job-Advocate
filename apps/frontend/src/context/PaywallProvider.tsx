@@ -35,9 +35,7 @@ export function PaywallProvider({ children, initialTier = null }: PaywallProvide
 
   // Save subscription changes to localStorage for demo purposes
   useEffect(() => {
-    console.log('subscriptionTier', subscriptionTier)
     if (subscriptionTier) {
-      console.log('setting subscriptionTier', subscriptionTier)
       setToStorage("subscriptionTier", subscriptionTier)
     } else {
       removeFromStorage("subscriptionTier")
