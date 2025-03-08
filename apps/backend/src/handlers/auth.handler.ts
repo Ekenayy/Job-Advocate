@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { supabase } from '../services/supabaseClient';
 import { WebhookEvent } from '@clerk/backend';
-import { clerkClient } from '@clerk/fastify'
+import clerkClient from '../services/clerkClient';
 
 export const webhookHandler = async (request: FastifyRequest, reply: FastifyReply) => {
   const evt = request.body as WebhookEvent;
@@ -68,13 +68,16 @@ export const webhookHandler = async (request: FastifyRequest, reply: FastifyRepl
     const { data, error } = await supabase
       .from('users')
       .delete()
-      .eq('clerk_id', id);
+      .eq('clerk_id', id)
+      .select()
+      .single();
 
     if (error) {  
       console.error('Error deleting user:', error);
       return reply.status(500).send({ error: 'Failed to delete user' });
     }
 
+    console.log('user deleted', data);
     return reply.status(200).send(data);
   }
 
