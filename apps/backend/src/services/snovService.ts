@@ -133,7 +133,7 @@ export const searchDomainEmployees = async (
           // Poll the result URL until we get emails - use longer timeout for email searches
           // Pass true for checkValidEmails to enable early termination when valid emails are found
           const resultUrl = searchResponse.data.links.result;
-          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 15, 3000, true);
+          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 10, 3000, true);
           
           console.log(`Email result for ${prospect.first_name}:`, emailResult);
           
@@ -241,7 +241,7 @@ const pollForResults = async (
         }
         
         // Wait before next attempt (exponential backoff)
-        const delay = initialDelay * Math.pow(1.5, attempt);
+        const delay = initialDelay * Math.pow(0.5, attempt);
         console.log(`Waiting ${delay}ms before next poll attempt`);
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
@@ -251,7 +251,7 @@ const pollForResults = async (
     }
 
     // Wait before next attempt (exponential backoff)
-    const delay = initialDelay * Math.pow(1.5, attempt);
+    const delay = initialDelay * Math.pow(0.5, attempt);
     console.log(`Received non-200 status (${response.status}), waiting ${delay}ms before retry`);
     await new Promise(resolve => setTimeout(resolve, delay));
   }
