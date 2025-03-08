@@ -16,15 +16,15 @@ const root = createRoot(document.getElementById('root')!)
 root.render(
   <React.StrictMode>
     <MemoryRouter initialEntries={["/"]}>
-      <PaywallProvider>
-        <ClerkProvider 
-          publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
-        >
+      <ClerkProvider 
+        publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+      >
         <UserProvider>
-          <App />
+          <PaywallProvider>
+              <App />
+          </PaywallProvider>
           </UserProvider>
-        </ClerkProvider>
-      </PaywallProvider>
+      </ClerkProvider>
     </MemoryRouter>
   </React.StrictMode>
 )

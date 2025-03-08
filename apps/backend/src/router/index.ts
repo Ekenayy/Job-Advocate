@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import fs from 'fs';
 import path from 'path';
+import stripeRoutes from './stripe.routes';
 
 export default async function registerRoutes(fastify: FastifyInstance) {
   const routesDir = __dirname;
@@ -16,4 +17,7 @@ export default async function registerRoutes(fastify: FastifyInstance) {
       fastify.register(plugin);
     }
   }
+
+  // Register Stripe routes
+  await fastify.register(stripeRoutes, { prefix: '/api' });
 }

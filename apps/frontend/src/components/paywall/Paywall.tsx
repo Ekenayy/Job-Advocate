@@ -13,7 +13,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
+import { useUser } from "../../context/UserProvder"
+import { createCheckoutSession } from "../../server/Stripe"
 interface PaywallProps {
   children: React.ReactNode
   isLocked?: boolean
@@ -29,14 +30,44 @@ export function Paywall({
 }: PaywallProps) {
   const [selectedPlan, setSelectedPlan] = useState("yearly")
   const [showPaywall, setShowPaywall] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const { user } = useUser()
 
-  const handleSubscribe = (plan: string) => {
-    // In a real implementation, this would redirect to a payment processor
-    if (onSubscribe) {
-      onSubscribe(plan)
+  const handleSubscribe = async (plan: string) => {
+    setIsLoading(true)
+    
+    try {
+      const session = await createCheckoutSession({
+        priceId: getPriceId(plan),
+        userId: user?.externalId || '',
+        customerEmail: user?.primaryEmailAddress?.emailAddress || '',
+        successUrl: chrome.runtime.getURL('index.html?payment=success'),
+        cancelUrl: chrome.runtime.getURL('index.html?payment=canceled')
+      })
+      
+      if (onSubscribe) {
+        onSubscribe(plan)
+      }
+      
+      if (session?.url) {
+        window.open(session.url, '_blank')
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error)
+    } finally {
+      setIsLoading(false)
     }
-    // For demo purposes, we'll just unlock the content
-    setShowPaywall(false)
+  }
+  
+  const getPriceId = (plan: string): string => {
+    switch (plan) {
+      case 'yearly':
+        return 'price_1R0CynB3ggUnx14rwznRt37Q'
+      case 'monthly':
+        return 'price_1R0D2ZB3ggUnx14rSIofGZT5'
+      default:
+        return 'price_1R0CynB3ggUnx14rwznRt37Q'
+    }
   }
 
   if (!showPaywall) {
@@ -99,8 +130,8 @@ export function Paywall({
                 </ul>
               </CardContent>
               <CardFooter className="flex flex-col gap-2">
-                <Button onClick={() => handleSubscribe(`yearly`)} className="w-full">
-                  Start networking
+                <Button onClick={() => handleSubscribe(`yearly`)} className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Processing...' : 'Start networking'}
                 </Button>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Cancel anytime with a 30-day money-back guarantee
@@ -138,8 +169,8 @@ export function Paywall({
                 </ul>
               </CardContent>
               <CardFooter className="pt-2 flex flex-col gap-2">
-                <Button onClick={() => handleSubscribe(`monthly`)} className="w-full">
-                  Start networking
+                <Button onClick={() => handleSubscribe(`monthly`)} className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Processing...' : 'Start networking'}
                 </Button>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Cancel anytime with a 30-day money-back guarantee
