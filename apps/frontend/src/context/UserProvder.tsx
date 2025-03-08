@@ -13,6 +13,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [lastAdvocates, setLastAdvocates] = useState<Employee[]>([]);
   const [userEmails, setUserEmails] = useState<Email[]>([]);
+  const { user } = useClerkUser();
 
   const getStorageData = async () => {
     const resume = await getFromStorage<Resume>('resume');
@@ -25,8 +26,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (lastAdvocates) setLastAdvocates(lastAdvocates);
     if (userEmails) setUserEmails(userEmails);
 
-    if (!userEmails) {
-      const emails = await getEmails('86318221-2f8e-43e2-822c-2d76e94b7aad');
+    if (!userEmails && user?.externalId) {
+      const emails = await getEmails(user.externalId);
       setContextUserEmails(emails);
     }
   };

@@ -3,7 +3,7 @@ import { useUser } from "../../context/UserProvder";
 import { PropagateLoader } from "react-spinners";
 
 const UpdateResume = () => {
-  const { contextResume, setResume } = useUser();
+  const { contextResume, setResume, user } = useUser();
   const [updatedResumeFile, setUpdatedResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,7 @@ const UpdateResume = () => {
 
     const formData = new FormData();
 
-    formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad'); // TODO: Get from Clerk
+    formData.append('user_id', user?.externalId || '');
     formData.append('update', 'true');
     formData.append('resume', updatedResumeFile);
 

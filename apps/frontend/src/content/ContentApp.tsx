@@ -194,7 +194,7 @@ const ContentApp: React.FC = () => {
       
       if (response.status === 'success') {
         setEmailedAdvocates([...emailedAdvocates, selectedAdvocate]);
-        const databaseEmail = await createEmail("86318221-2f8e-43e2-822c-2d76e94b7aad", selectedAdvocate.email, subject, content);
+        const databaseEmail = await createEmail(user?.externalId || "", selectedAdvocate.email, subject, content);
         setContextUserEmails([...userEmails, databaseEmail]);
         console.log("Email sent successfully");
       } else {
@@ -231,7 +231,7 @@ const ContentApp: React.FC = () => {
     );
   }
 
-  // console.log('user', user)
+  console.log('user', user)
 
   return (
     <div className="p-4">
