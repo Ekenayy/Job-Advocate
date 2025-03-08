@@ -41,8 +41,8 @@ export function Paywall({
         priceId: getPriceId(plan),
         userId: user?.externalId || '',
         customerEmail: user?.primaryEmailAddress?.emailAddress || '',
-        successUrl: chrome.runtime.getURL('index.html?payment=success'),
-        cancelUrl: chrome.runtime.getURL('index.html?payment=canceled')
+        successUrl: `${import.meta.env.VITE_WEB_URL}/?success=true`,
+        cancelUrl: `${import.meta.env.VITE_WEB_URL}/?canceled=true`
       })
       
       if (onSubscribe) {
@@ -62,11 +62,11 @@ export function Paywall({
   const getPriceId = (plan: string): string => {
     switch (plan) {
       case 'yearly':
-        return 'price_1R0CynB3ggUnx14rwznRt37Q'
+        return import.meta.env.VITE_YEARLY_PRICE_ID
       case 'monthly':
-        return 'price_1R0D2ZB3ggUnx14rSIofGZT5'
+        return import.meta.env.VITE_MONTHLY_PRICE_ID
       default:
-        return 'price_1R0CynB3ggUnx14rwznRt37Q'
+        return import.meta.env.VITE_YEARLY_PRICE_ID
     }
   }
 

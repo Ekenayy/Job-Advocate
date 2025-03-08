@@ -2,15 +2,14 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import Stripe from 'stripe';
 import { supabase } from '../services/supabaseClient';
 import { clerkClient } from '@clerk/fastify';
+import { STRIPE_SECRET_KEY, YEARLY_PRICE_ID, MONTHLY_PRICE_ID } from '../constants/environmentVariables';
 
 // Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-02-24.acacia',
-});
+const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 const PRICE_IDS = {
-  'price_1R0CynB3ggUnx14rwznRt37Q': 'annual',
-  'price_1R0D2ZB3ggUnx14rSIofGZT5': 'monthly',
+  [YEARLY_PRICE_ID]: 'annual',
+  [MONTHLY_PRICE_ID]: 'monthly',
 };
 
 interface CreateCheckoutSessionBody {
@@ -25,7 +24,7 @@ export const createCheckoutSessionHandler = async (
   request: FastifyRequest<{ Body: CreateCheckoutSessionBody }>,
   reply: FastifyReply
 ) => {
-  const { priceId, userId, customerEmail } = request.body;
+  const { priceId, userId, customerEmail, successUrl, cancelUrl } = request.body;
 
   try {
     // Create a checkout session
@@ -38,8 +37,8 @@ export const createCheckoutSessionHandler = async (
         },
       ],
       mode: 'subscription',
-      success_url: 'https://www.useinreach.com/?success=true',
-      cancel_url: 'https://www.useinreach.com/?canceled=true',
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       customer_email: customerEmail,
       client_reference_id: userId, // Store user ID for webhook
       metadata: {

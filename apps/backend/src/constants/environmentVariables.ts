@@ -10,3 +10,7 @@ export const SNOV_CLIENT_SECRET = process.env.SNOV_CLIENT_SECRET;
 export const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 export const CLERK_PUBLISHABLE_KEY = process.env.CLERK_PUBLISHABLE_KEY!;
 export const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY!;
+export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY!;
+export const WEB_URL = process.env.WEB_URL!;
+export const YEARLY_PRICE_ID = process.env.YEARLY_PRICE_ID!;
+export const MONTHLY_PRICE_ID = process.env.MONTHLY_PRICE_ID!;
