@@ -63,6 +63,7 @@ export const getResumeHandler = async (
     const { userId } = request.params;
     const resume = await resumeService.getResumeByUserId(userId);
     
+    console.log('resume', resume);
     if (!resume) {
       return reply.status(404).send({ error: 'Resume not found' });
     }
@@ -70,6 +71,6 @@ export const getResumeHandler = async (
     return reply.status(200).send(resume);
   } catch (error) {
     console.error('Error fetching resume:', error);
-    return reply.status(500).send({ error: 'Internal server error' });
+    return reply.status(500).send({ error: 'Resume not found' });
   }
 };

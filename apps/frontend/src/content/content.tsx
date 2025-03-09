@@ -24,12 +24,10 @@ const JOB_SITES = [
 // Function to check if current site is a job site using job site list, button text, and apply button
 const isJobSite = () => {
   const currentUrl = window.location.href.toLowerCase();
-  console.log("Checking URL:", currentUrl);
 
   // Check if URL matches known job sites
   const isKnownJobSite = JOB_SITES.some((site) => {
     const matches = currentUrl.includes(site);
-    console.log(`Checking against ${site}:`, matches);
     return matches;
   });
 
@@ -54,13 +52,11 @@ const isJobSite = () => {
       document.querySelectorAll(applySelectors.join(","))
     );
 
-    console.log("Found potential apply elements:", elements.length);
 
     // Check if any of the elements have the text "apply"
     const matchingElement = elements.find((element) => {
       const text = element.textContent?.toLowerCase().trim() || "";
       const matches = text.includes("apply");
-      console.log("Element text:", text, "Matches:", matches);
       return matches;
     });
 
@@ -83,7 +79,6 @@ const isJobSite = () => {
 
   const result =
     isKnownJobSite || hasApplyButton() || hasJobDescriptionSection();
-  console.log("Is job site result:", result);
   return result;
 };
 
@@ -96,7 +91,6 @@ const extractJobInfo = async () => {
   try {
     // Make sure we're using the absolute backend URL, not a relative one
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
-    console.log("Using backend URL:", backendUrl);
     
     if (!backendUrl || backendUrl === 'undefined') {
       throw new Error('Backend URL is not defined');
@@ -117,7 +111,6 @@ const extractJobInfo = async () => {
       }
     );
 
-    console.log('Raw response before parsing:', await response.clone().text()); // Debug log
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -134,7 +127,6 @@ const extractJobInfo = async () => {
       isJobSite: isJobSite(),
     };
 
-    console.log('Sending job info to frontend:', jobInfo); // Debug log
     return jobInfo;
   } catch (error) {
     console.error("Error extracting job info:", error);

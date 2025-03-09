@@ -2,6 +2,7 @@ import { useState } from "react";
 import SecondStep from "./SecondStep";
 import ThirdStep from "./ThirdStep";
 import { useUser } from "../../context/UserProvder";
+
 interface OnboardingProps {
     setIsOnboardingComplete: (isOnboardingComplete: boolean) => void;
 }
@@ -13,7 +14,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { setResume } = useUser();
+  const { setResume, user } = useUser();
 
   const handleNext = async () => {
     if (currentStep === 0) {
@@ -27,7 +28,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
 
       const formData = new FormData();
 
-      formData.append('user_id', '86318221-2f8e-43e2-822c-2d76e94b7aad');
+      formData.append('user_id', user?.externalId || '');
       formData.append('jobTitle', jobTitle);
       formData.append('resume', resumeFile);
 

@@ -26,4 +26,16 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: WEB_URL
+        sync: false
+      - key: YEARLY_PRICE_ID
+        sync: false
+      - key: MONTHLY_PRICE_ID
+        sync: false
     runtime: node

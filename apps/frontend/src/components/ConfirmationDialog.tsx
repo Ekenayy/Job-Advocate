@@ -1,6 +1,5 @@
 import React from 'react';
 import { PropagateLoader } from 'react-spinners';
-
 interface ConfirmationDialogProps {
   onClose: () => void;
   onConfirm: () => void;
@@ -12,7 +11,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   onConfirm, 
   isLoading,
 }) => {
-  
+
   if (!isLoading) {
     return (
       <div className="p-4 flex flex-col items-center">

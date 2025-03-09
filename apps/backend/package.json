@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "0.1.0",
-  "type": "module",
+  "type": "commonjs",
   "private": true,
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -9,8 +9,11 @@
     "lint": "eslint src/**/*.ts --fix",
     "dev": "tsx watch src/index.ts"
   },
+  "engines": {
+    "node": ">=22.14.0"
+  },
   "dependencies": {
-    "@clerk/backend": "^1.24.2",
+    "@clerk/backend": "^1.25.1",
     "@fastify/cors": "^10.0.2",
     "@fastify/env": "^5.0.2",
     "@fastify/helmet": "^13.0.1",
@@ -28,6 +31,7 @@
     "fastify": "^5.2.1",
     "mammoth": "^1.9.0",
     "pdf-parse": "^1.1.1",
+    "stripe": "^17.7.0",
     "supabase": "^2.6.8",
     "uuid": "^11.0.5"
   },
@@ -35,6 +39,10 @@
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/node": "^22",
+    "@typescript-eslint/eslint-plugin": "^8.25.0",
+    "@typescript-eslint/parser": "^8.25.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.3",
     "tsx": "^4.19.2",
     "typescript": "5.7.3"
   },

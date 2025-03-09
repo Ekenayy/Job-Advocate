@@ -109,7 +109,7 @@ export class GmailService {
     subject: string,
     body: string,
     displayName?: string
-  ): Promise<void> {
+  ): Promise<{ status: string; message: string }> {
     try {
       if (!this.accessToken) {
         await this.authenticate();
@@ -144,6 +144,11 @@ export class GmailService {
 
       if (!response.ok) {
         throw new Error(`Failed to send email: ${response.statusText}`);
+      }
+
+      return {
+        status: 'success',
+        message: 'Email sent successfully'
       }
     } catch (error) {
       if (error instanceof Error && (error.message.includes('token expired') || error.message.includes('invalid credentials'))) {

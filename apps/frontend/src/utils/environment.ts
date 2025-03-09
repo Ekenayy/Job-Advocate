@@ -38,3 +38,13 @@ export const setToStorage = async <T>(key: string, value: T): Promise<void> => {
   
   localStorage.setItem(key, JSON.stringify(value));
 };
+
+export const removeFromStorage = async (key: string): Promise<void> => {
+  if (isChromeExtension()) {
+    return new Promise((resolve) => {
+      chrome.storage.local.remove(key, resolve);
+    });
+  }
+
+  localStorage.removeItem(key);
+};

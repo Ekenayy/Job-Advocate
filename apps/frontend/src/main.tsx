@@ -5,6 +5,7 @@ import './index.css'
 import { UserProvider } from './context/UserProvder.tsx'
 import { ClerkProvider } from '@clerk/chrome-extension'
 import { MemoryRouter } from 'react-router'
+import { PaywallProvider } from './context/PaywallProvider.tsx'
 
 if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
@@ -19,8 +20,10 @@ root.render(
         publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
       >
         <UserProvider>
-          <App />
-        </UserProvider>
+          <PaywallProvider>
+              <App />
+          </PaywallProvider>
+          </UserProvider>
       </ClerkProvider>
     </MemoryRouter>
   </React.StrictMode>
