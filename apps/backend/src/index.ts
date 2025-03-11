@@ -13,6 +13,13 @@ swaggerSetup(fastify);
 fastify.register(cors, { origin: '*' });
 fastify.register(helmet);
 fastify.register(multipart);
+fastify.register(import('fastify-raw-body'), {
+  field: 'rawBody', 
+  global: false, 
+  encoding: 'utf8', 
+  runFirst: true, 
+  routes: ['/api/stripe/webhook'], 
+})
 fastify.get('/api/health', async (request, reply) => {
   return { status: 'ok' };
 });

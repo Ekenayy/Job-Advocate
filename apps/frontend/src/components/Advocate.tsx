@@ -58,7 +58,6 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
         </div>
         <div className="flex flex-col">
           <span className="text-2xl font-medium">{name}</span>
-          <span className="text-md text-gray-500 self-center">{email}</span>
         </div>
         {linkedin ? <a href={linkedin} target="_blank" rel="noopener noreferrer">
           <FaLinkedin className="w-6 h-6 text-blue-600 cursor-pointer" />

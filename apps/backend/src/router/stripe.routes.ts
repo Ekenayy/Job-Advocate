@@ -34,5 +34,10 @@ export default async function stripeRoutes(fastify: FastifyInstance) {
   );
 
   // Stripe webhook endpoint (no validation as it comes from Stripe)
-  fastify.post('/stripe/webhook', webhookHandler);
+  fastify.post('/stripe/webhook', {
+    config: {
+      rawBody: true, 
+    },
+  },
+  webhookHandler);
 } 
