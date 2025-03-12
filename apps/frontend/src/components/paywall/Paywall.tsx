@@ -82,11 +82,11 @@ export function Paywall({
     }
   }
 
-  const handleDialogClick = () => {
-    console.log('handleDialogClick')
-    console.log('checking subscription....')
-    checkSubscription()
-  }
+  // Add a function to check subscription when dialog closes
+  const handleDialogClose = () => {
+    console.log('Dialog closed, checking subscription status');
+    checkSubscription();
+  };
 
   // Check for payment success
   if (!showPaywall) {
@@ -99,10 +99,13 @@ export function Paywall({
 
   return (
     <Dialog>
-      <DialogTrigger onClick={handleDialogClick} className="w-full" asChild>
+      <DialogTrigger className="w-full" asChild>
         <Button className="w-full text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">{buttonText}</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent 
+        className="sm:max-w-[425px]"
+        onCloseClick={handleDialogClose}
+      >
         <DialogHeader>
           <DialogTitle>Unlock Unlimited Networking Power</DialogTitle>
           <DialogDescription>
