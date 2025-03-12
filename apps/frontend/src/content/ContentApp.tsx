@@ -111,8 +111,6 @@ const ContentApp: React.FC = () => {
     setSelectedAdvocate(advocate);
     setIsLoadingEmail(true);
 
-    console.log('jobInfo', jobInfo);
-
     try {
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/generate`, {
         method: 'POST',
