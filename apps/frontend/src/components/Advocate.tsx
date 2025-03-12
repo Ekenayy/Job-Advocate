@@ -5,8 +5,6 @@ import { PropagateLoader } from 'react-spinners';
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { Paywall } from './paywall/Paywall';
-import { usePaywall } from '../context/PaywallProvider';
-import { useUser } from '../context/UserProvder';
 interface AdvocateProps {
   name: string;
   title: string;
@@ -28,13 +26,6 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
 
   const handleSubscribe = (plan: string) => {
     console.log(`Processing subscription for plan: ${plan}`)
-    // In a real app, you would redirect to a payment processor
-    // For demo purposes, we'll just update the subscription tier
-    // if (plan.includes("annual")) {
-    //   setSubscriptionTier("annual")
-    // } else {
-    //   setSubscriptionTier("monthly")
-    // }
   }
 
   useEffect(() => {
@@ -82,6 +73,7 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
         />}
         <Paywall
           onSubscribe={handleSubscribe}
+          buttonText="Send Email"
         >
           <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
             {isLoading ? 
