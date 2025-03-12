@@ -1,19 +1,29 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { UserContextType } from '../types/User';
-import { Resume } from '../types/Resume';
-import { getFromStorage, setToStorage, removeFromStorage } from '../utils/environment';
-import { useUser as useClerkUser } from '@clerk/chrome-extension';
+import { UserContextType, JobInfo } from '../types/User';
+import { Resume } from '@/types/Resume';
 import { Employee } from '../types/Employee';
 import { Email } from '../types/Email';
+import { getFromStorage, setToStorage, removeFromStorage } from '../utils/environment';
+import { useUser as useClerkUser } from '@clerk/chrome-extension';
 import { getEmails } from '../server/Email';
 import { getResume } from '../server/Resume';
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+// Default job info state
+const defaultJobInfo: JobInfo = {
+  companyBackground: "",
+  jobRequirements: "",
+  companyName: "",
+  potentialAdvocates: []
+};
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [contextResume, setContextResume] = useState<Resume | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const [lastAdvocates, setLastAdvocates] = useState<Employee[]>([]);
   const [userEmails, setUserEmails] = useState<Email[]>([]);
+  const [jobInfo, setJobInfoState] = useState<JobInfo>(defaultJobInfo);
   const { user, isSignedIn, isLoaded } = useClerkUser();
   const [previousSignInState, setPreviousSignInState] = useState<boolean | null>(null);
 
@@ -23,6 +33,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const lastAdvocates = await getFromStorage<Employee[]>('lastAdvocates');
     const userEmails = await getFromStorage<Email[]>('userEmails');
     const previousSignInState = await getFromStorage<boolean>('previousSignInState');
+    const storedJobInfo = await getFromStorage<JobInfo>('jobInfo');
     
     if (resume) setContextResume(resume);
 
@@ -38,12 +49,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (lastAdvocates) setLastAdvocates(lastAdvocates);
     if (userEmails) setUserEmails(userEmails);
     if (previousSignInState) setPreviousSignInState(previousSignInState);
+    if (storedJobInfo) setJobInfoState(storedJobInfo);
 
     if (!userEmails && user?.externalId) {
       const emails = await getEmails(user.externalId);
       setContextUserEmails(emails);
     }
-
   };
 
   const setResume = async (resume: Resume) => {
@@ -66,17 +77,32 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     await setToStorage('userEmails', emails);
   };
 
+  // New function to set job info
+  const setJobInfo = async (info: JobInfo) => {
+    setJobInfoState(info);
+    await setToStorage('jobInfo', info);
+  };
+
+  // New function to update partial job info
+  const updateJobInfo = async (info: Partial<JobInfo>) => {
+    const updatedInfo = { ...jobInfo, ...info };
+    setJobInfoState(updatedInfo);
+    await setToStorage('jobInfo', updatedInfo);
+  };
+
   // Clear user data from storage when user signs out
   const clearUserData = async () => {
     console.log('User signed out, clearing data from storage');
     await removeFromStorage('resume');
     await removeFromStorage('lastAdvocates');
     await removeFromStorage('userEmails');
+    await removeFromStorage('jobInfo');
     
     // Reset state
     setContextResume(null);
     setLastAdvocates([]);
     setUserEmails([]);
+    setJobInfoState(defaultJobInfo);
   };
 
   useEffect(() => {
@@ -111,7 +137,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       lastAdvocates,
       setLastContextAdvocates,
       userEmails,
-      setContextUserEmails
+      setContextUserEmails,
+      jobInfo,
+      setJobInfo,
+      updateJobInfo
     }}>
       {children}
     </UserContext.Provider>

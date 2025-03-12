@@ -1,6 +1,6 @@
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"

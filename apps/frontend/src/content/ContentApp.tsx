@@ -18,7 +18,7 @@ interface Advocate {
 }
 
 const ContentApp: React.FC = () => {
-  const { contextResume, user, lastAdvocates, setLastContextAdvocates, userEmails, setContextUserEmails } = useUser();
+  const { contextResume, user, lastAdvocates, setLastContextAdvocates, userEmails, setContextUserEmails, jobInfo, setJobInfo } = useUser();
 
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
@@ -28,17 +28,6 @@ const ContentApp: React.FC = () => {
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [error, setError] = useState<string | Error | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(!lastAdvocates.length);
-  const [jobInfo, setJobInfo] = useState<{
-    companyBackground: string;
-    jobRequirements: string;
-    companyName: string;
-    potentialAdvocates: string[];
-  }>({
-    companyBackground: "",
-    jobRequirements: "",
-    companyName: "",
-    potentialAdvocates: []
-  });
 
   useEffect(() => {
     if (lastAdvocates.length > 0) {
