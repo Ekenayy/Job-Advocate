@@ -1,6 +1,6 @@
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,6 +15,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser } from "../../context/UserProvder"
 import { createCheckoutSession } from "../../server/Stripe"
+import { usePaywall } from "../../context/PaywallProvider"
+
 interface PaywallProps {
   children: React.ReactNode
   isLocked?: boolean
@@ -32,6 +34,16 @@ export function Paywall({
   const [showPaywall, _setShowPaywall] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useUser()
+  const { checkSubscription, isSubscribed } = usePaywall()
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false)
+
+  const { userEmails } = useUser();
+
+  const { hasAccess, setSubscriptionTier } = usePaywall()
+
+  const userHasAccess = hasAccess("annual") || hasAccess("monthly") || userEmails.length <= 5
+
+  isLocked = !userHasAccess
 
   const handleSubscribe = async (plan: string) => {
     setIsLoading(true)
@@ -70,6 +82,13 @@ export function Paywall({
     }
   }
 
+  const handleDialogClick = () => {
+    console.log('handleDialogClick')
+    console.log('checking subscription....')
+    checkSubscription()
+  }
+
+  // Check for payment success
   if (!showPaywall) {
     return <>{children}</>
   }
@@ -80,7 +99,7 @@ export function Paywall({
 
   return (
     <Dialog>
-      <DialogTrigger className="w-full" asChild>
+      <DialogTrigger onClick={handleDialogClick} className="w-full" asChild>
         <Button className="w-full text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">{buttonText}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

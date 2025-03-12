@@ -26,21 +26,15 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
   const [emailContent, setEmailContent] = useState(AIEmail?.body || '');
   const [emailSubject, setEmailSubject] = useState(AIEmail?.subject || '');
 
-  const { userEmails } = useUser();
-
-  const { hasAccess, setSubscriptionTier } = usePaywall()
-
-  const userHasAccess = hasAccess("premium") || userEmails.length <= 5
-
   const handleSubscribe = (plan: string) => {
     console.log(`Processing subscription for plan: ${plan}`)
     // In a real app, you would redirect to a payment processor
     // For demo purposes, we'll just update the subscription tier
-    if (plan.includes("premium")) {
-      setSubscriptionTier("premium")
-    } else {
-      setSubscriptionTier("basic")
-    }
+    // if (plan.includes("annual")) {
+    //   setSubscriptionTier("annual")
+    // } else {
+    //   setSubscriptionTier("monthly")
+    // }
   }
 
   useEffect(() => {
@@ -87,7 +81,6 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           minRows={15}
         />}
         <Paywall
-          isLocked={!userHasAccess}
           onSubscribe={handleSubscribe}
         >
           <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
