@@ -22,7 +22,6 @@ root.render(
     <MemoryRouter initialEntries={["/"]}>
       <ClerkProvider 
         publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
-        syncHost={import.meta.env.VITE_CLERK_SYNC_HOST}
       >
         <UserProvider>
           <PaywallProvider>
