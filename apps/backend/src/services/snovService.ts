@@ -8,6 +8,16 @@ interface Employee {
   email: string;
 }
 
+// Define executive titles for easy reference
+const EXECUTIVE_TITLES = ["founder", "cofounder", "co-founder", "ceo", "chief executive officer", "president", "owner"];
+
+// Helper function to check if a position is an executive position
+const isExecutivePosition = (position: string): boolean => {
+  if (!position) return false;
+  const lowerPosition = position.toLowerCase();
+  return EXECUTIVE_TITLES.some(title => lowerPosition.includes(title));
+};
+
 export const searchDomainEmployees = async (
   domain: string,
   jobTitle: string,
@@ -165,33 +175,63 @@ export const searchDomainEmployees = async (
       }
     };
 
-    // Process all prospects in parallel
-    const employeePromises = prospectsResult.data.map(getProspectEmails);
+    // First, sort prospects to prioritize non-executives
+    // This ensures we process non-executive prospects first
+    const sortedProspects = [...prospectsResult.data].sort((a, b) => {
+      const aIsExecutive = isExecutivePosition(a.position);
+      const bIsExecutive = isExecutivePosition(b.position);
+      
+      if (aIsExecutive && !bIsExecutive) return 1;  // Non-executives first
+      if (!aIsExecutive && bIsExecutive) return -1;
+      return 0;
+    });
+
+    console.log(`Sorted prospects: ${sortedProspects.length} total, prioritizing non-executives`);
+
+    // Process all prospects in parallel but keep track of executive count
+    const employeePromises = sortedProspects.map(getProspectEmails);
     
     // Use a more efficient approach that stops when we have enough valid employees
-    const employees: (Employee | null)[] = [];
+    const employees: Employee[] = [];
+    const executiveEmployees: Employee[] = [];
+    const nonExecutiveEmployees: Employee[] = [];
     const minRequiredEmployees = 5; // Set minimum threshold
+    const maxExecutives = 2; // Maximum number of executives to include
     
-    // Process promises in batches to check if we have enough results
+    // Process promises in order to check if we have enough results
     for (let i = 0; i < employeePromises.length; i++) {
       const employee = await employeePromises[i];
       if (employee) {
-        employees.push(employee);
+        // Categorize employee based on position
+        if (isExecutivePosition(employee.position)) {
+          executiveEmployees.push(employee);
+        } else {
+          nonExecutiveEmployees.push(employee);
+        }
         
-        // If we have enough valid employees, stop processing the rest
-        if (employees.filter(Boolean).length >= minRequiredEmployees) {
-          console.log(`Found ${minRequiredEmployees} valid employees, stopping early`);
+        // Check if we have enough employees in total
+        const totalValidEmployees = 
+          nonExecutiveEmployees.length + Math.min(executiveEmployees.length, maxExecutives);
+        
+        if (totalValidEmployees >= minRequiredEmployees) {
+          console.log(`Found ${totalValidEmployees} valid employees (${nonExecutiveEmployees.length} non-executives, ${executiveEmployees.length} executives), stopping early`);
           break;
         }
       }
     }
+    
+    // Combine the results, limiting executives to maxExecutives
+    employees.push(...nonExecutiveEmployees);
+    employees.push(...executiveEmployees.slice(0, maxExecutives));
+    
+    console.log(`Final employee breakdown: ${employees.length} total, ${nonExecutiveEmployees.length} non-executives, ${Math.min(executiveEmployees.length, maxExecutives)} executives`);
     
     if (employees.length === 0) {
       throw new Error('No valid employees found with all required fields');
     }
 
     console.log("Successfully mapped employees:", employees.length);
-    return employees.filter((emp): emp is Employee => emp !== null);
+    return employees;
   } catch (error) {
     console.error("Detailed error in searchDomainEmployees:", error);
     throw error;
