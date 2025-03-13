@@ -20,7 +20,7 @@ interface AdvocateProps {
   AIEmail: { subject: string; body: string } | null;
 }
 
-const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail, email }) => {
+const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail }) => {
   const [emailContent, setEmailContent] = useState(AIEmail?.body || '');
   const [emailSubject, setEmailSubject] = useState(AIEmail?.subject || '');
 

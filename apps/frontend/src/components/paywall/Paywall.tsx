@@ -34,12 +34,11 @@ export function Paywall({
   const [showPaywall, _setShowPaywall] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useUser()
-  const { checkSubscription, isSubscribed } = usePaywall()
-  const [isCheckingPayment, setIsCheckingPayment] = useState(false)
+  const { checkSubscription } = usePaywall()
 
   const { userEmails } = useUser();
 
-  const { hasAccess, setSubscriptionTier } = usePaywall()
+  const { hasAccess } = usePaywall()
 
   const userHasAccess = hasAccess("annual") || hasAccess("monthly") || userEmails.length <= 5
 
