@@ -11,6 +11,10 @@ if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
 }
 
+if (!import.meta.env.VITE_CLERK_SYNC_HOST) {
+  throw new Error("Missing Sync Host")
+}
+
 const root = createRoot(document.getElementById('root')!)
 
 root.render(
@@ -18,6 +22,7 @@ root.render(
     <MemoryRouter initialEntries={["/"]}>
       <ClerkProvider 
         publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+        syncHost={import.meta.env.VITE_CLERK_SYNC_HOST}
       >
         <UserProvider>
           <PaywallProvider>

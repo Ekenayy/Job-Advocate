@@ -7,6 +7,8 @@ export function manifestPlugin(): Plugin {
   let clientId = '';
   let apiUrl = '';
   let env = 'development';
+  let clerkSyncHost = '';
+  let clerkFrontendApi = '';
 
   return {
     name: 'vite-plugin-manifest',
@@ -16,6 +18,8 @@ export function manifestPlugin(): Plugin {
       env = config.mode || process.env.NODE_ENV || 'development';
       clientId = config.env?.VITE_OAUTH_CLIENT_ID || '';
       apiUrl = config.env?.VITE_BACKEND_URL || '';
+      clerkSyncHost = config.env?.VITE_CLERK_SYNC_HOST || '';
+      clerkFrontendApi = config.env?.VITE_CLERK_FRONTEND_API || '';
       
       // Remove quotes from client ID
       clientId = clientId.replace(/["']/g, '');
@@ -24,6 +28,8 @@ export function manifestPlugin(): Plugin {
       console.log('Mode:', env);
       console.log('Client ID:', clientId);
       console.log('API URL:', apiUrl);
+      console.log('Clerk Sync Host:', clerkSyncHost);
+      console.log('Clerk Frontend API:', clerkFrontendApi);
     },
     
     closeBundle() {

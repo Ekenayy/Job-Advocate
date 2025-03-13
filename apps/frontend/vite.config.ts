@@ -13,6 +13,8 @@ export default defineConfig(({ mode }) => {
   console.log('NODE_ENV:', env.NODE_ENV);
   console.log('VITE_OAUTH_CLIENT_ID:', env.VITE_OAUTH_CLIENT_ID);
   console.log('VITE_BACKEND_URL:', env.VITE_BACKEND_URL);
+  console.log('VITE_CLERK_SYNC_HOST:', env.VITE_CLERK_SYNC_HOST);
+  console.log('VITE_CLERK_FRONTEND_API:', env.VITE_CLERK_FRONTEND_API);
   
   // Expose env variables to the client
   const envWithProcessPrefix = Object.entries(env).reduce(

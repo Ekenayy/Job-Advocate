@@ -9,8 +9,9 @@
     "https://*.clerk.accounts.dev/*",
     "https://*.clerk.accounts.io/*",
     "https://*.clerk.accounts.run/*",
-    "https://*-clerk.app/*",
-    "https://*.supabase.co/*"
+    "https://*.supabase.co/*",
+    "__CLERK_SYNC_HOST__/*",
+    "__CLERK_FRONTEND_API__/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.clerk.accounts.dev https://*.clerk.accounts.io https://*.clerk.accounts.run https://*-clerk.app https://*.supabase.co __API_URL__"
