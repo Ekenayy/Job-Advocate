@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SecondStep from "./SecondStep";
 import ThirdStep from "./ThirdStep";
 import { useUser } from "../../context/UserProvder";
 
 interface OnboardingProps {
-    setIsOnboardingComplete: (isOnboardingComplete: boolean) => void;
+    setIsOnboardingComplete: (isOnboardingComplete: boolean) => Promise<boolean>;
 }
 
 export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete }) => {
@@ -13,11 +13,40 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasExistingResume, setHasExistingResume] = useState(false);
 
-  const { setResume, user } = useUser();
+  const { setResume, user, contextResume } = useUser();
+
+  // Check if user already has a resume
+  useEffect(() => {
+    if (contextResume) {
+      setHasExistingResume(true);
+      // If user already has a job title in their resume, use it
+      if (contextResume.parsed_data?.job_title) {
+        setJobTitle(contextResume.parsed_data.job_title as string);
+      }
+    }
+  }, [contextResume]);
 
   const handleNext = async () => {
     if (currentStep === 0) {
+      // If user already has a resume, skip the resume upload step
+      if (hasExistingResume) {
+        try {
+          const success = await setIsOnboardingComplete(true);
+          if (!success) {
+            setError('Unable to complete onboarding. Please ensure you have connected your Gmail account.');
+            return;
+          }
+        } catch (error) {
+          console.error('Error completing onboarding:', error);
+          setError('Failed to complete onboarding');
+          return;
+        }
+        return;
+      }
+
+      // Otherwise, proceed with resume upload
       setIsLoading(true);
 
       if (!resumeFile) {
@@ -56,11 +85,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       }
 
     } else if (currentStep === 1) {
-      chrome.storage.local.set({
-        isOnboardingComplete: true
-      }, () => {
-        setIsOnboardingComplete(true);
-      });
+      setIsLoading(true);
+      try {
+        const success = await setIsOnboardingComplete(true);
+        if (!success) {
+          setError('Unable to complete onboarding. Please ensure you have uploaded a resume and connected your Gmail account.');
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error('Error completing onboarding:', error);
+        setError('Failed to complete onboarding');
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(false);
     } else {
       setCurrentStep(currentStep + 1);
     }
@@ -75,6 +114,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       setResumeFile={setResumeFile}
       error={error}
       isLoading={isLoading}
+      hasExistingResume={hasExistingResume}
     />,
     <ThirdStep 
       onNext={handleNext}
