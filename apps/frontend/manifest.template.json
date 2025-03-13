@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Job Advocate Chrome Extension - __ENV__",
+  "version": "1.0.0",
+  "host_permissions": [
+    "http://localhost/",
+    "ws://localhost/",
+    "https://*.clerk.com/*",
+    "https://*.clerk.accounts.dev/*",
+    "https://*.clerk.accounts.io/*",
+    "https://*.clerk.accounts.run/*",
+    "https://*-clerk.app/*",
+    "https://*.supabase.co/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.clerk.accounts.dev https://*.clerk.accounts.io https://*.clerk.accounts.run https://*-clerk.app https://*.supabase.co __API_URL__"
+  },
+  "action": { 
+    "default_title": "Side Panel",
+    "default_icon": "assets/favicon.svg"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "permissions": [
+    "sidePanel",
+    "identity",
+    "identity.email",
+    "storage",
+    "cookies",
+    "activeTab"
+  ],
+  "oauth2": {
+    "client_id": "__OAUTH_CLIENT_ID__",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.send"
+    ]
+  },
+  "background": {
+    "service_worker": "assets/background.js"
+  },
+  "content_scripts": [
+    {
+      "js": ["assets/content.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
