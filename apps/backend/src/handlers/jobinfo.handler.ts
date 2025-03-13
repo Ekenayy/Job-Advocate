@@ -31,9 +31,9 @@ export const extractJobInfoHandler = async (
 
           For potential advocates:
           - Identify 3-5 job titles of people at the company who would be valuable for the candidate to connect with
-          - Include the hiring manager's likely title
-          - Include team members with similar or complementary roles
-          - Include senior roles that might influence hiring decisions
+          - Include the hiring manager's likely title. For example, if the job title is "Software Engineer", include "VP of Engineering" or "CTO" as potential advocates.
+          - Include titles of team members with roles in the same department. For example, if the job title is "Software Engineer, Backend Services", include "Software Engineer" as a potential advocate.
+          - Do NOT include titles of team members with roles in different departments. For example, if the job title is "Product Manager", do not include "VP of Engineering" or "CTO" as potential advocates.
           - Format as an array of standardized job titles (e.g., ["Engineering Manager", "Senior Software Engineer"])
 
           Return a JSON object with exactly these fields:
