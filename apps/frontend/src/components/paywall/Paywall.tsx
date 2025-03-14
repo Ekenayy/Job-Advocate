@@ -15,6 +15,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useUser } from "../../context/UserProvder"
 import { createCheckoutSession } from "../../server/Stripe"
+import { usePaywall } from "../../context/PaywallProvider"
+
 interface PaywallProps {
   children: React.ReactNode
   isLocked?: boolean
@@ -25,13 +27,22 @@ interface PaywallProps {
 export function Paywall({
   children,
   isLocked = true,
-  buttonText = "Send Paywall",
+  buttonText = "Send Email",
   onSubscribe,
 }: PaywallProps) {
   const [selectedPlan, setSelectedPlan] = useState("yearly")
   const [showPaywall, _setShowPaywall] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useUser()
+  const { checkSubscription } = usePaywall()
+
+  const { userEmails } = useUser();
+
+  const { hasAccess } = usePaywall()
+
+  const userHasAccess = hasAccess("annual") || hasAccess("monthly") || userEmails.length <= 5
+
+  isLocked = !userHasAccess
 
   const handleSubscribe = async (plan: string) => {
     setIsLoading(true)
@@ -70,6 +81,13 @@ export function Paywall({
     }
   }
 
+  // Add a function to check subscription when dialog closes
+  const handleDialogClose = () => {
+    console.log('Dialog closed, checking subscription status');
+    checkSubscription();
+  };
+
+  // Check for payment success
   if (!showPaywall) {
     return <>{children}</>
   }
@@ -83,7 +101,10 @@ export function Paywall({
       <DialogTrigger className="w-full" asChild>
         <Button className="w-full text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">{buttonText}</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent 
+        className="sm:max-w-[425px]"
+        onCloseClick={handleDialogClose}
+      >
         <DialogHeader>
           <DialogTitle>Unlock Unlimited Networking Power</DialogTitle>
           <DialogDescription>

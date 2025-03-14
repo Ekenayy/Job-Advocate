@@ -5,8 +5,6 @@ import { PropagateLoader } from 'react-spinners';
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { Paywall } from './paywall/Paywall';
-import { usePaywall } from '../context/PaywallProvider';
-import { useUser } from '../context/UserProvder';
 interface AdvocateProps {
   name: string;
   title: string;
@@ -22,25 +20,12 @@ interface AdvocateProps {
   AIEmail: { subject: string; body: string } | null;
 }
 
-const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail, email }) => {
+const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail }) => {
   const [emailContent, setEmailContent] = useState(AIEmail?.body || '');
   const [emailSubject, setEmailSubject] = useState(AIEmail?.subject || '');
 
-  const { userEmails } = useUser();
-
-  const { hasAccess, setSubscriptionTier } = usePaywall()
-
-  const userHasAccess = hasAccess("premium") || userEmails.length <= 5
-
   const handleSubscribe = (plan: string) => {
     console.log(`Processing subscription for plan: ${plan}`)
-    // In a real app, you would redirect to a payment processor
-    // For demo purposes, we'll just update the subscription tier
-    if (plan.includes("premium")) {
-      setSubscriptionTier("premium")
-    } else {
-      setSubscriptionTier("basic")
-    }
   }
 
   useEffect(() => {
@@ -58,7 +43,6 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
         </div>
         <div className="flex flex-col">
           <span className="text-2xl font-medium">{name}</span>
-          <span className="text-md text-gray-500 self-center">{email}</span>
         </div>
         {linkedin ? <a href={linkedin} target="_blank" rel="noopener noreferrer">
           <FaLinkedin className="w-6 h-6 text-blue-600 cursor-pointer" />
@@ -88,8 +72,8 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
           minRows={15}
         />}
         <Paywall
-          isLocked={!userHasAccess}
           onSubscribe={handleSubscribe}
+          buttonText="Send Email"
         >
           <button disabled={isLoading} type="submit" className="text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">
             {isLoading ? 

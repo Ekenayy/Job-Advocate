@@ -1,8 +1,13 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import Stripe from 'stripe';
 import { supabase } from '../services/supabaseClient';
-import { STRIPE_SECRET_KEY, YEARLY_PRICE_ID, MONTHLY_PRICE_ID } from '../constants/environmentVariables';
-import  clerkClient  from '../services/clerkClient';
+import { STRIPE_SECRET_KEY, YEARLY_PRICE_ID, MONTHLY_PRICE_ID, STRIPE_WEBHOOK_SECRET } from '../constants/environmentVariables';
+import clerkClient from '../services/clerkClient';
+
+// Add interface for FastifyRequest with rawBody
+interface FastifyRequestWithRawBody extends FastifyRequest {
+  rawBody?: string | Buffer;
+}
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
@@ -24,6 +29,7 @@ export const createCheckoutSessionHandler = async (
   reply: FastifyReply
 ) => {
   const { priceId, userId, customerEmail, successUrl, cancelUrl } = request.body;
+  console.log('Creating checkout session for:', { priceId, userId, customerEmail });
 
   try {
     // Create a checkout session
@@ -45,6 +51,7 @@ export const createCheckoutSessionHandler = async (
       },
     });
     
+    console.log('Successfully created checkout session:', { sessionId: session.id });
 
     return reply.status(200).send({
       url: session.url,
@@ -61,6 +68,7 @@ export const verifySubscriptionHandler = async (
   reply: FastifyReply
 ) => {
   const { userId } = request.params;
+  console.log('Verifying subscription for user:', userId);
 
   try {
     // Get user's subscription from database
@@ -78,8 +86,11 @@ export const verifySubscriptionHandler = async (
 
     // If no subscription found, user is on free tier
     if (!data) {
+      console.log('No active subscription found for user:', userId);
       return reply.status(200).send({ isSubscribed: false, tier: 'free' });
     }
+
+    console.log('Found active subscription for user:', { userId, tier: data.tier });
 
     // Return subscription status and tier
     return reply.status(200).send({
@@ -93,23 +104,35 @@ export const verifySubscriptionHandler = async (
   }
 };
 
-export const webhookHandler = async (request: FastifyRequest, reply: FastifyReply) => {
+export const webhookHandler = async (request: FastifyRequestWithRawBody, reply: FastifyReply) => {
+  console.log('Received Stripe webhook event');
+
   const signature = request.headers['stripe-signature'] as string;
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const endpointSecret = STRIPE_WEBHOOK_SECRET;
 
   if (!endpointSecret) {
+    console.error('Missing webhook secret in environment variables');
     return reply.status(500).send({ error: 'Webhook secret not configured' });
   }
 
   let event;
 
   try {
+    // Use the rawBody field provided by fastify-raw-body
+    const rawBody = request.rawBody;
+    
+    if (!rawBody) {
+      console.error('No raw body found in request');
+      return reply.status(400).send({ error: 'No raw body found in request' });
+    }
+    
     // Verify webhook signature
     event = stripe.webhooks.constructEvent(
-      request.body as Buffer,
+      rawBody,
       signature,
       endpointSecret
     );
+    console.log('Verified webhook signature, event type:', event.type);
   } catch (error) {
     console.error('Webhook signature verification failed:', error);
     return reply.status(400).send({ error: 'Invalid signature' });
@@ -119,16 +142,19 @@ export const webhookHandler = async (request: FastifyRequest, reply: FastifyRepl
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
+      console.log('Processing checkout.session.completed:', { sessionId: session.id });
       await handleCheckoutSessionCompleted(session);
       break;
     }
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription;
+      console.log('Processing customer.subscription.updated:', { subscriptionId: subscription.id });
       await handleSubscriptionUpdated(subscription);
       break;
     }
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
+      console.log('Processing customer.subscription.deleted:', { subscriptionId: subscription.id });
       await handleSubscriptionDeleted(subscription);
       break;
     }
@@ -148,56 +174,168 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     return;
   }
 
-  // Get subscription details
-  const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-  const priceId = subscription.items.data[0].price.id;
-  const tier = PRICE_IDS[priceId as keyof typeof PRICE_IDS] || 'basic';
+  console.log('Processing completed checkout session for user:', userId);
 
-  // Store subscription in database
-  const { error } = await supabase.from('subscriptions').insert({
-    user_id: userId,
-    stripe_customer_id: session.customer as string,
-    stripe_subscription_id: subscription.id,
-    status: subscription.status,
-    tier,
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-  });
-
-  if (error) {
-    console.error('Error storing subscription:', error);
-    return;
-  }
-
-  // Update user metadata in Clerk
   try {
-    await clerkClient.users.updateUser(userId, {
-      publicMetadata: {
-        subscribed: true,
+    // Get subscription details
+    const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+    const priceId = subscription.items.data[0].price.id;
+    const tier = PRICE_IDS[priceId as keyof typeof PRICE_IDS] || 'basic';
+
+    console.log('Retrieved subscription details:', { subscriptionId: subscription.id, tier });
+
+    // Check if subscription already exists
+    const { data: existingSubscription } = await supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('stripe_subscription_id', subscription.id)
+      .maybeSingle();
+
+    if (existingSubscription) {
+      console.log('Subscription already exists in database, updating:', subscription.id);
+      
+      // Update existing subscription
+      await supabase
+        .from('subscriptions')
+        .update({
+          status: subscription.status,
+          tier,
+          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('stripe_subscription_id', subscription.id);
+        
+      console.log('Successfully updated existing subscription');
+    } else {
+      // Get user's clerk_id
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('clerk_id')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (userError) {
+        console.error('Database error finding user:', userError);
+      }
+
+      // Store subscription in database
+      const { error } = await supabase.from('subscriptions').insert({
+        user_id: userId,
+        stripe_customer_id: session.customer as string,
+        stripe_subscription_id: subscription.id,
+        status: subscription.status,
         tier,
-      },
-    });
+        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      });
+
+      if (error) {
+        console.error('Error storing subscription:', error);
+        return;
+      }
+
+      console.log('Successfully stored subscription in database');
+
+      // Update user metadata in Clerk
+      if (userData?.clerk_id) {
+        try {
+          await clerkClient.users.updateUser(userData.clerk_id, {
+            publicMetadata: {
+              subscribed: true,
+              tier,
+            },
+          });
+          console.log('Successfully updated Clerk user metadata');
+        } catch (error) {
+          console.error('Error updating Clerk user metadata:', error);
+        }
+      } else {
+        console.log('No clerk_id found for user:', userId);
+      }
+    }
   } catch (error) {
-    console.error('Error updating Clerk user metadata:', error);
+    console.error('Error processing checkout session:', error);
   }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  console.log('Handling subscription update:', { subscriptionId: subscription.id });
+  
   // Get user ID from subscription metadata or customer
   const { data, error } = await supabase
     .from('subscriptions')
     .select('user_id')
     .eq('stripe_subscription_id', subscription.id)
-    .single();
+    .maybeSingle(); // Use maybeSingle instead of single to avoid errors
 
-  if (error || !data) {
-    console.error('Error finding user for subscription:', error);
+  if (error) {
+    console.error('Database error finding subscription:', error);
+    return;
+  }
+
+  if (!data) {
+    console.log('No subscription found with ID:', subscription.id);
+    
+    // Try to get user ID from subscription metadata as fallback
+    const userId = subscription.metadata?.userId;
+    if (!userId) {
+      console.error('No user ID found in subscription metadata');
+      return;
+    }
+    
+    console.log('Found user ID in metadata:', userId);
+    
+    // Create a new subscription record
+    const priceId = subscription.items.data[0].price.id;
+    const tier = PRICE_IDS[priceId as keyof typeof PRICE_IDS] || 'basic';
+    
+    const { error: insertError } = await supabase.from('subscriptions').insert({
+      user_id: userId,
+      stripe_customer_id: subscription.customer as string,
+      stripe_subscription_id: subscription.id,
+      status: subscription.status,
+      tier,
+      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    });
+    
+    if (insertError) {
+      console.error('Error creating subscription record:', insertError);
+      return;
+    }
+    
+    console.log('Created new subscription record for user:', userId);
+    
+    // Update user metadata in Clerk
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('clerk_id')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (userData?.clerk_id) {
+        await clerkClient.users.updateUser(userData.clerk_id, {
+          publicMetadata: {
+            subscribed: subscription.status === 'active',
+            tier: subscription.status === 'active' ? tier : 'free',
+          },
+        });
+        console.log('Successfully updated Clerk user metadata');
+      }
+    } catch (error) {
+      console.error('Error updating Clerk user metadata:', error);
+    }
+    
     return;
   }
 
   const userId = data.user_id;
   const priceId = subscription.items.data[0].price.id;
   const tier = PRICE_IDS[priceId as keyof typeof PRICE_IDS] || 'basic';
+
+  console.log('Updating subscription for user:', { userId, tier });
 
   // Update subscription in database
   await supabase
@@ -207,53 +345,119 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       tier,
       current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
       current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
     })
     .eq('stripe_subscription_id', subscription.id);
 
+  console.log('Successfully updated subscription in database');
+
   // Update user metadata in Clerk
   try {
-    await clerkClient.users.updateUser(userId, {
-      publicMetadata: {
-        subscribed: subscription.status === 'active',
-        tier: subscription.status === 'active' ? tier : 'free',
-      },
-    });
+    const { data: userData } = await supabase
+      .from('users')
+      .select('clerk_id')
+      .eq('id', userId)
+      .maybeSingle();
+      
+    if (userData?.clerk_id) {
+      await clerkClient.users.updateUser(userData.clerk_id, {
+        publicMetadata: {
+          subscribed: subscription.status === 'active',
+          tier: subscription.status === 'active' ? tier : 'free',
+        },
+      });
+      console.log('Successfully updated Clerk user metadata');
+    } else {
+      console.log('No clerk_id found for user:', userId);
+    }
   } catch (error) {
     console.error('Error updating Clerk user metadata:', error);
   }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  console.log('Handling subscription deletion:', { subscriptionId: subscription.id });
+  
   // Get user ID from subscription
   const { data, error } = await supabase
     .from('subscriptions')
     .select('user_id')
     .eq('stripe_subscription_id', subscription.id)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) {
-    console.error('Error finding user for subscription:', error);
+  if (error) {
+    console.error('Database error finding subscription:', error);
+    return;
+  }
+
+  if (!data) {
+    console.log('No subscription found with ID:', subscription.id);
+    // Try to get user ID from subscription metadata as fallback
+    const userId = subscription.metadata?.userId;
+    if (!userId) {
+      console.error('No user ID found in subscription metadata');
+      return;
+    }
+    
+    console.log('Found user ID in metadata for deleted subscription:', userId);
+    
+    // Update user metadata in Clerk directly
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('clerk_id')
+        .eq('id', userId)
+        .maybeSingle();
+        
+      if (userData?.clerk_id) {
+        await clerkClient.users.updateUser(userData.clerk_id, {
+          publicMetadata: {
+            subscribed: false,
+            tier: 'free',
+          },
+        });
+        console.log('Successfully updated Clerk user metadata for canceled subscription');
+      }
+    } catch (error) {
+      console.error('Error updating Clerk user metadata:', error);
+    }
+    
     return;
   }
 
   const userId = data.user_id;
+  console.log('Found user for deleted subscription:', userId);
 
   // Update subscription in database
   await supabase
     .from('subscriptions')
     .update({
       status: 'canceled',
+      updated_at: new Date().toISOString(),
     })
     .eq('stripe_subscription_id', subscription.id);
 
+  console.log('Successfully marked subscription as canceled in database');
+
   // Update user metadata in Clerk
   try {
-    await clerkClient.users.updateUser(userId, {
-      publicMetadata: {
-        subscribed: false,
-        tier: 'free',
-      },
-    });
+    const { data: userData } = await supabase
+      .from('users')
+      .select('clerk_id')
+      .eq('id', userId)
+      .maybeSingle();
+      
+    if (userData?.clerk_id) {
+      await clerkClient.users.updateUser(userData.clerk_id, {
+        publicMetadata: {
+          subscribed: false,
+          tier: 'free',
+        },
+      });
+      console.log('Successfully updated Clerk user metadata for canceled subscription');
+    } else {
+      console.log('No clerk_id found for user:', userId);
+    }
   } catch (error) {
     console.error('Error updating Clerk user metadata:', error);
   }

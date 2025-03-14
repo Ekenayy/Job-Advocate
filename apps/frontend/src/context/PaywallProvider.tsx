@@ -3,7 +3,7 @@ import { useUser } from './UserProvder';
 import { verifySubscription } from '../server/Stripe';
 import { getFromStorage, setToStorage } from '../utils/environment';
 
-export type SubscriptionTier = 'free' | 'basic' | 'premium';
+export type SubscriptionTier = 'free' | 'annual' | 'monthly';
 
 interface PaywallContextType {
   isSubscribed: boolean;
@@ -27,34 +27,16 @@ export const PaywallProvider = ({ children }: { children: ReactNode }) => {
   // Check subscription status on mount and when user changes
   const checkSubscription = async () => {
     if (!user?.externalId) {
+      console.log('user', user)
       setIsSubscribed(false);
       setSubscriptionTier('free');
       return;
     }
 
     try {
-      // First check local storage for cached subscription data
-      const cachedData = await getFromStorage<{
-        isSubscribed: boolean;
-        tier: SubscriptionTier;
-        timestamp: number;
-      }>('subscription');
-
-      // If we have cached data that's less than 1 hour old, use it
-      const ONE_HOUR = 60 * 60 * 1000;
-      if (
-        cachedData && 
-        cachedData.timestamp && 
-        Date.now() - cachedData.timestamp < ONE_HOUR
-      ) {
-        setIsSubscribed(cachedData.isSubscribed);
-        setSubscriptionTier(cachedData.tier);
-        return;
-      }
-
       // Otherwise, verify with the server
       const { isSubscribed: subStatus, tier } = await verifySubscription(user.externalId);
-      
+      console.log('subStatus', subStatus)
       setIsSubscribed(subStatus);
       setSubscriptionTier(tier as SubscriptionTier);
       
@@ -96,12 +78,12 @@ export const PaywallProvider = ({ children }: { children: ReactNode }) => {
     if (!requiredTier || requiredTier === 'free') return true;
     if (!subscriptionTier) return false;
 
-    if (requiredTier === 'basic') {
-      return subscriptionTier === 'basic' || subscriptionTier === 'premium';
+    if (requiredTier === 'annual') {
+      return subscriptionTier === 'annual' || subscriptionTier === 'monthly';
     }
 
-    if (requiredTier === 'premium') {
-      return subscriptionTier === 'premium';
+    if (requiredTier === 'monthly') {
+      return subscriptionTier === 'monthly';
     }
 
     return false;

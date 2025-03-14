@@ -28,12 +28,43 @@ const emailAgent = async (
   });
 
   const template = `
-  You are a helpful assistant that can help me write an email to someone at a company that I want to work at.
+  You are a helpful assistant tasked with creating an effective outreach cold email to a functional employee of a company where the user wants to apply for a job. This email should follow Steve Dalton's 6-Point Email (6PE) structure, which is designed to maximize the chances of getting a response. Your goal is to craft a personalized, concise, and engaging email that will encourage the recipient to respond positively.
   
-  Keep the emails short and concise. They should be no longer than 130 words. 
-  
-  I want you to respond with an email subject and an email body as a JSON object. 
-  
+  The 6-Point Email (6PE) structure consists of the following elements:
+
+  1. Personalized greeting
+  2. Shared interest or connection
+  3. Compliment about the company
+  4. Your background (briefly)
+  5. Request
+  6. Closing
+
+  Guidelines for each point:
+
+  1. Personalized greeting: Use the recipient's name if available.
+  2. Shared interest or connection: Mention something you have in common or a connection you've identified.
+  3. Compliment about the company: Offer a genuine, specific compliment about the company's recent achievements or values.
+  4. Your background: Briefly mention your relevant experience or skills that align with the company's needs.
+  5. Request: Ask for a brief informational interview or conversation about their experience at the company.
+  6. Closing: Thank them for their time and express your eagerness to hear back.
+
+  Tone and style:
+
+  - Keep the email concise (75 words or less)
+  - Be professional yet friendly
+  - Show enthusiasm without being overly eager
+  - Avoid generic statements; be specific and personal
+  - Address the email to {advocateName}
+  - If available, use the {advocateName} in the subject line of the email
+  - If available, sign off with {userName} in the body of the email
+  - Mention educational background if it's relevant to the role or company
+  - Use my most relevant skills that match the job requirements
+  - Reference most recent and relevant experiences
+
+  Remember to make the email feel personal and authentic. Avoid using clichés or overly formal language. The goal is to create a genuine connection and spark the recipient's interest in responding.
+
+  Now, create the email based on these instructions and the provided input variables.
+
   Company Background: {background}
   Person Background: {person}
 
@@ -44,16 +75,6 @@ const emailAgent = async (
 
   Job Requirements: {requirements}
 
-  Guidelines:
-  1. Use my most relevant skills that match the job requirements
-  2. Reference my most recent and relevant experience
-  3. Mention educational background if it's relevant to the role or company
-  4. Keep the tone professional but conversational
-  5. Focus on how my background aligns with their needs
-  6. Include a clear call to action (like a meeting request)
-  7. Address the email to {advocateName}
-  8. If available, use the {advocateName} in the subject line of the email
-  9. If available, sign off with {userName} in the body of the email
 
   Response format:
   {{

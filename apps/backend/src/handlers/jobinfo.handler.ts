@@ -6,20 +6,75 @@ const anthropic = new Anthropic({
   apiKey: ANTHROPIC_API_KEY,
 });
 
+interface JobInfoRequest {
+  Body: {
+    pageContent: string;
+    pageUrl?: string;
+    currentDomain?: string;
+    domainHints?: {
+      links: string[];
+      emails: string[];
+      metaTags: Record<string, string>;
+      socialProfiles: string[];
+      hostingPlatform: string;
+    };
+  };
+}
+
 export const extractJobInfoHandler = async (
-  request: FastifyRequest<{ Body: { pageContent: string } }>,
+  request: FastifyRequest<JobInfoRequest>,
   reply: FastifyReply
 ) => {
   try {
-    const { pageContent } = request.body;
+    const { pageContent, pageUrl, currentDomain, domainHints } = request.body;
+
+    console.log("Page content length:", pageContent.length);
+    console.log("Page URL:", pageUrl);
+    console.log("Current domain:", currentDomain);
+    console.log("Domain hints:", domainHints);
+
+    // Prepare domain hints for Claude
+    let domainHintsText = "";
+    if (domainHints) {
+      domainHintsText = `
+Additional domain hints:
+- Current page URL: ${pageUrl || "Unknown"}
+- Current domain: ${currentDomain || "Unknown"}
+`;
+
+      if (domainHints.links && domainHints.links.length > 0) {
+        domainHintsText += `- Company website links found: ${domainHints.links.join(", ")}\n`;
+      }
+
+      if (domainHints.emails && domainHints.emails.length > 0) {
+        domainHintsText += `- Email domains found: ${domainHints.emails.join(", ")}\n`;
+      }
+
+      if (domainHints.metaTags && Object.keys(domainHints.metaTags).length > 0) {
+        domainHintsText += "- Meta tags found:\n";
+        for (const [key, value] of Object.entries(domainHints.metaTags)) {
+          domainHintsText += `  - ${key}: ${value}\n`;
+        }
+      }
+
+      if (domainHints.socialProfiles && domainHints.socialProfiles.length > 0) {
+        domainHintsText += `- Social profiles found: ${domainHints.socialProfiles.join(", ")}\n`;
+      }
+
+      if (domainHints.hostingPlatform) {
+        domainHintsText += `- Job hosting platform: ${domainHints.hostingPlatform}\n`;
+      }
+    }
 
     const response = await anthropic.messages.create({
-      model: "claude-3-5-haiku-20241022",
+      model: "claude-3-7-sonnet-20250219",
       max_tokens: 1000,
       messages: [
         {
           role: "user",
           content: `Extract the job title, company name, company domain, company background, job requirements, and potential advocates from the following job description in json format.
+
+          If you are given information about multiple positions at multiple companies, only extract information from the position and company that you have the most information about. Often times, many jobs postings will appear in a sidebar, but are not the job posting that the user has clicked on.
 
           For the job title:
           - Extract only the core job title without location, remote status, or technology stack
@@ -28,6 +83,15 @@ export const extractJobInfoHandler = async (
           - Standardize titles: "Sr." → "Senior", "Jr." → "Junior", "Mgr" → "Manager", etc.
           - Keep the seniority level (Junior, Mid, Senior, Lead, etc.) if present
           - Keep the specialization (Frontend, Backend, Full Stack, etc.) if present
+
+          For the company domain:
+          - Determine the most likely official company domain (e.g., "company.com")
+          - Use the domain hints provided if available. Navigate to any hints to understand the company better.
+          - Look for email addresses in the job posting that might reveal the company domain
+          - If multiple possible domains are found, choose the most likely official one
+          - Return only the domain without "http://" or "www." prefixes
+          - Navigate to the company domain and check if it is a valid company website and if the job posting matches the mission and description of the company website that you navigate to
+          - Take your time here. It is critical to get the company domain correct.
 
           For potential advocates:
           - Identify 3-5 job titles of people at the company who would be valuable for the candidate to connect with
@@ -44,10 +108,12 @@ export const extractJobInfoHandler = async (
           - jobRequirements: The job requirements as a string
           - potentialAdvocates: Array of 3-5 job titles of people who would be valuable connections
 
-          Job description: ${pageContent.substring(0, 2000)}`
+          ${domainHintsText}
+
+          Job description: ${pageContent}`
         }
       ],
-      system: "You are a helpful assistant that extracts job information from job postings. Always respond with valid JSON containing all requested fields. For job titles and potential advocates, extract only the core titles without location, remote status, or technology stack."
+      system: "You are a helpful assistant that extracts job information from job postings. Always respond with valid JSON containing all requested fields. For job titles and potential advocates, extract only the core titles without location, remote status, or technology stack. For company domains, use the provided hints to determine the most likely official domain."
     });
 
     if (!response.content[0] || typeof response.content[0] !== 'object') {
