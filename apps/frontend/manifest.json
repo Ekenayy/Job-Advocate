@@ -2,14 +2,17 @@
   "manifest_version": 3,
   "name": "Job Advocate Chrome Extension",
   "version": "1.0.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1dstNzn21ux6zbW9PIvKH6uZEoz8qUl0Uhu+ZfxThbP1at4hf0wom7fhCDOCwgQ2mZVCBiEqsef0g6cubgOTRj3jRe+iBMTMnuSOUbRYpmdHUa+GcDBjgoQ+T//gy93OUcB/UJ42KhjL1FTzEpPWDKL5pKhHwUlsgW80K++4DV0uKjzoylsGgZNp12eXQZ2jJHqM5aHXleT33cl+hcuxs6beocLiwuY7N/2yVgf0uxTdtopn84oYWQPhLep3melkVI7FDWL1o/NepcqK78cV6qK7tUxl2HPwhsbfT49zEbkZSsfEs2kjTC8mSBp1+cHsi/iFVIl8ypcy33Otbup4awIDAQAB",
   "host_permissions": [
     "http://localhost/",
     "ws://localhost/",
     "https://*.clerk.com/*",
-    "https://*.supabase.co/*"
+    "https://*.supabase.co/*",
+    "https://*.useinreach.com/*",
+    "https://inreach-staging.onrender.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.supabase.co"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.supabase.co https://*.useinreach.com https://inreach-staging.onrender.com"
   },
   "action": { 
     "default_title": "Side Panel",
