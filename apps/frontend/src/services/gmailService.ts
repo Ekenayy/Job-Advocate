@@ -36,7 +36,7 @@ export class GmailService {
     }
 
     // Set expiration to 1 hour from now (adjust this to 30 days later)
-    const expirationTime = Date.now() + (60 * 60 * 1000);
+    const expirationTime = Date.now() + (30 * 24 * 60 * 60 * 1000);
     
     await chrome.storage.local.set({
       gmailToken: token,

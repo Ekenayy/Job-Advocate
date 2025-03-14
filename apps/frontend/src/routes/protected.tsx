@@ -2,9 +2,43 @@ import { Route } from "react-router";
 import ContentApp from "../content/ContentApp";
 import { Onboarding } from "../components/onboarding/Onboarding";
 import { useUser as useContextUser } from "../context/UserProvder";
+import { useEffect, useState } from "react";
+import { GmailService } from "../services/gmailService";
 
 function ProtectedContent() {
-  const { isOnboardingComplete, completeOnboarding } = useContextUser();
+  const { isOnboardingComplete, completeOnboarding, checkIfUserIsOnboarded, contextResume } = useContextUser();
+  const [isChecking, setIsChecking] = useState(true);
+  const [hasGmailToken, setHasGmailToken] = useState(false);
+  
+  // Check if user is onboarded when component mounts
+  useEffect(() => {
+    const verifyOnboardingStatus = async () => {
+      try {
+        // Check Gmail token status separately
+        const gmailService = GmailService.getInstance();
+        const isGmailAuthenticated = await gmailService.isAuthenticated();
+        setHasGmailToken(isGmailAuthenticated);
+        
+        // Check overall onboarding status
+        await checkIfUserIsOnboarded();
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+    
+    verifyOnboardingStatus();
+  }, [checkIfUserIsOnboarded]);
+  
+  // Show loading state while checking
+  if (isChecking) {
+    return (
+      <main className="flex-1 flex items-center justify-center">
+        <p>Checking onboarding status...</p>
+      </main>
+    );
+  }
   
   return (
     <main className="flex-1">

@@ -22,10 +22,11 @@ export interface UserContextType {
   lastAdvocates: Employee[];
   userEmails: Email[];
   setResume: (resume: Resume) => Promise<void>;
-  completeOnboarding: () => Promise<void>;
+  completeOnboarding: () => Promise<boolean>;
   setLastContextAdvocates: (advocates: Employee[]) => Promise<void>;
   setContextUserEmails: (emails: Email[]) => Promise<void>;
   jobInfo: JobInfo;
   setJobInfo: (info: JobInfo) => Promise<void>;
   updateJobInfo: (info: Partial<JobInfo>) => Promise<void>;
+  checkIfUserIsOnboarded: () => Promise<boolean>;
 }
