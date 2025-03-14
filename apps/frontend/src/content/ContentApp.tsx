@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import Advocate from "../components/Advocate";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import DomainInputDialog from "../components/DomainInputDialog";
 import { Employee } from "../types/Employee";
 import { GmailService } from '../services/gmailService';
 import { useUser } from '../context/UserProvder';
 import { ErrorWithDetails } from "../types/Error";
 import { FaSearchengin } from "react-icons/fa6";
 import { createEmail } from "../server/Email";
+
 interface Advocate {
   id: number;
   name: string;
@@ -17,8 +19,16 @@ interface Advocate {
   linkedin?: string | undefined;
 }
 
+// Helper function to format error messages
+const formatErrorMessage = (error: string | Error | null): string => {
+  if (error === null) return '';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message;
+  return 'An error occurred';
+};
+
 const ContentApp: React.FC = () => {
-  const { contextResume, user, lastAdvocates, setLastContextAdvocates, userEmails, setContextUserEmails, jobInfo, setJobInfo } = useUser();
+  const { contextResume, user, lastAdvocates, setLastContextAdvocates, userEmails, setContextUserEmails, jobInfo, setJobInfo, updateJobInfo } = useUser();
 
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
@@ -29,6 +39,8 @@ const ContentApp: React.FC = () => {
   const [error, setError] = useState<string | Error | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(!lastAdvocates.length);
   const [isJobListingPage, setIsJobListingPage] = useState(false);
+  const [showDomainInput, setShowDomainInput] = useState(false);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (lastAdvocates.length > 0) {
@@ -40,6 +52,8 @@ const ContentApp: React.FC = () => {
     setIsLoading(true);
     setError(null); // Clear previous errors
     setIsJobListingPage(false); // Reset job listing page flag
+    setShowDomainInput(false); // Hide domain input if it was shown
+    setErrorCode(null); // Reset error code
     
     try {
       // Get current tab
@@ -48,72 +62,65 @@ const ContentApp: React.FC = () => {
 
       // Get job info from content script
       console.log('Sending GET_JOB_INFO message to tab:', tab.id);
-      const jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
-      console.log('Job info received:', jobInfo);
+      const jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+      console.log('Job info received:', jobInfoResponse);
 
       // Check if we're on a job listing page - do this check FIRST before any other processing
-      if (jobInfo.isJobListingPage) {
+      if (jobInfoResponse.isJobListingPage) {
         console.log('Job listing page detected, showing warning UI');
         setIsJobListingPage(true);
         setIsLoading(false); // Stop loading immediately
         return; // Exit early without making backend calls
       }
 
-      if (!jobInfo.isJobSite) {
+      if (!jobInfoResponse.isJobSite) {
         throw new Error('This page does not appear to be a job posting');
       }
 
-      // Set job info with all expected fields
-      setJobInfo({
-        companyBackground: jobInfo.companyBackground || "",
-        jobRequirements: jobInfo.jobRequirements || "",
-        companyName: jobInfo.companyName || "",
-        potentialAdvocates: jobInfo.potentialAdvocates || []
+      // Update job info with all expected fields in the context
+      await updateJobInfo({
+        companyBackground: jobInfoResponse.companyBackground || "",
+        jobRequirements: jobInfoResponse.jobRequirements || "",
+        companyName: jobInfoResponse.companyName || "",
+        potentialAdvocates: jobInfoResponse.potentialAdvocates || [],
+        domain: jobInfoResponse.domain || "",
+        jobTitle: jobInfoResponse.jobTitle || ""
       });
 
-      // Fetch employees using POST with request body
-      console.log('Fetching employees from backend...');
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          domain: jobInfo.domain,
-          jobTitle: jobInfo.jobTitle || "",
-          potentialAdvocates: jobInfo.potentialAdvocates || []
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log('errorData response is not OK', errorData);
-        setError(errorData.details);
-        throw new ErrorWithDetails(
-          errorData.error || 'Failed to fetch employees',
-          errorData.details,
-          errorData.suggestions,
-          errorData.code
-        );
-      }
-
-      const employees = await response.json();
-      setAdvocates(employees);
-      setLastContextAdvocates(employees);
-      setShowConfirmation(false);
+      // Call searchEmployees with the detected domain
+      await searchEmployees(
+        jobInfoResponse.domain, 
+        jobInfoResponse.jobTitle || "", 
+        jobInfoResponse.potentialAdvocates || []
+      );
 
     } catch (error) {
-      console.error('Error:', error);
-      console.log("error instanceof ErrorWithDetails", error instanceof ErrorWithDetails);
+      console.error('Error in fetchJobInfoAndEmployees:', error);
+      console.log('Error type:', typeof error);
+      console.log('Is ErrorWithDetails:', error instanceof ErrorWithDetails);
+      
       if (error instanceof ErrorWithDetails) {
-        console.log("error.code", error.code);
-        if (error.code == "MISSING_PARAMETERS") {
-          console.log("setting error to MISSING_PARAMETERS");
+        console.log('Error code:', error.code);
+        setErrorCode(error.code);
+
+        console.log("jobInfo from context:", jobInfo);
+        
+        if (error.code === "NO_VALID_EMPLOYEES" && jobInfo) {
+          console.log('Showing domain input dialog for NO_VALID_EMPLOYEES error');
+          setShowDomainInput(true);
+          setError(error.details);
+        } else if (error.code === "NO_EMPLOYEES_FOUND") {
+          console.log('Handling NO_EMPLOYEES_FOUND error');
+          setError(error.details);
+        } else if (error.code === "MISSING_PARAMETERS") {
+          console.log('Handling MISSING_PARAMETERS error');
           setError("There was an error fetching employees. Please make sure you are on a job page.");
         } else {  
+          console.log('Handling other error with code:', error.code);
           setError(error.details);
         }
       } else {
+        console.log('Handling generic error');
         setError(new ErrorWithDetails(
           error instanceof Error ? error.message : 'An error occurred',
           'We encountered an unexpected error',
@@ -126,11 +133,89 @@ const ContentApp: React.FC = () => {
     }
   };
 
+  // New function to search employees with a specific domain
+  const searchEmployees = async (domain: string, jobTitle: string, potentialAdvocates: string[]) => {
+    try {
+      console.log('Fetching employees from backend with domain:', domain);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          domain,
+          jobTitle,
+          potentialAdvocates
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('Error response from backend:', errorData);
+        console.log('Error code from backend:', errorData.code);
+        
+        // Create an ErrorWithDetails object with the error data
+        const errorWithDetails = new ErrorWithDetails(
+          errorData.error || 'Failed to fetch employees',
+          errorData.details || 'Unknown error details',
+          errorData.suggestions || [],
+          errorData.code || 'UNKNOWN_ERROR'
+        );
+        
+        throw errorWithDetails;
+      }
+
+      const employees = await response.json();
+      setAdvocates(employees);
+      setLastContextAdvocates(employees);
+      setShowConfirmation(false);
+      return employees;
+    } catch (error) {
+      console.error('Error in searchEmployees:', error);
+      throw error;
+    }
+  };
+
+  // Handler for domain input submission
+  const handleDomainSubmit = async (domain: string) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      if (!jobInfo || !jobInfo.jobTitle) {
+        throw new Error('No job information available');
+      }
+      
+      // Update the job info in context with the new domain using updateJobInfo
+      await updateJobInfo({ domain });
+      
+      // Search with the new domain
+      await searchEmployees(domain, jobInfo.jobTitle, jobInfo.potentialAdvocates || []);
+      
+      // Hide the domain input dialog on success
+      setShowDomainInput(false);
+    } catch (error) {
+      console.error('Error with custom domain:', error);
+      if (error instanceof ErrorWithDetails) {
+        setError(error.details);
+      } else {
+        setError(error instanceof Error ? error.message : 'Failed to search with the provided domain');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleCompose = async (advocate: Employee) => {
     setSelectedAdvocate(advocate);
     setIsLoadingEmail(true);
 
     try {
+      // Check if we have the necessary job info
+      if (!jobInfo) {
+        throw new Error('No job information available');
+      }
+
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/generate`, {
         method: 'POST',
         headers: {
@@ -218,10 +303,16 @@ const ContentApp: React.FC = () => {
     
   };
 
-  console.log("isJobListingPage", isJobListingPage);
+  const handleDomainInputCancel = () => {
+    setShowDomainInput(false);
+    setShowConfirmation(true);
+    setError(null);
+  }
+
+  console.log("showDomainInput", showDomainInput);
 
 
-  if (showConfirmation && !isJobListingPage) {
+  if (showConfirmation && !isJobListingPage && !showDomainInput) {
     return (
       <div className="p-4">
         <ConfirmationDialog
@@ -232,7 +323,7 @@ const ContentApp: React.FC = () => {
         {error && (
           <div className="mt-4 p-4 bg-red-50 border border-red-400 rounded-md">
             <p className="text-red-700 font-medium">
-              {error instanceof Error ? error.message : error}
+              {formatErrorMessage(error)}
             </p>
             {error instanceof ErrorWithDetails && error.details && (
               <p className="text-red-600 mt-2">
@@ -251,6 +342,36 @@ const ContentApp: React.FC = () => {
       </div>
     );
   }
+
+  // Show domain input dialog when needed
+  if (showDomainInput && jobInfo) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-semibold">Job Advocate</h1>
+          <button onClick={() => setShowConfirmation(true)} className="text-gray-400 hover:text-gray-600">
+            <FaSearchengin className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {error && (
+          <div className="mb-4 p-4 bg-amber-50 border border-amber-300 rounded-md">
+            <p className="text-amber-800 font-medium">
+              {formatErrorMessage(error)}
+            </p>
+          </div>
+        )}
+        
+        <DomainInputDialog
+          companyName={jobInfo.companyName}
+          onSubmit={handleDomainSubmit}
+          onCancel={handleDomainInputCancel}
+          isLoading={isLoading}
+        />
+      </div>
+    );
+  }
+
   // Special UI for job listing pages
   if (isJobListingPage) {
     return (
@@ -322,6 +443,15 @@ const ContentApp: React.FC = () => {
           </svg> : <FaSearchengin className="w-5 h-5" />}
         </button>
       </div>
+      
+      {error && errorCode !== "NO_VALID_EMPLOYEES" && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-400 rounded-md">
+          <p className="text-red-700 font-medium">
+            {formatErrorMessage(error)}
+          </p>
+        </div>
+      )}
+      
       <div className="flex flex-col gap-14">
       { advocates.length > 0 ? advocates.map((employee) => {
           return (

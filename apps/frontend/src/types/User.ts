@@ -14,6 +14,8 @@ export interface JobInfo {
   jobRequirements: string;
   companyName: string;
   potentialAdvocates: string[];
+  domain?: string;
+  jobTitle?: string;
 }
 
 export interface UserContextType {
