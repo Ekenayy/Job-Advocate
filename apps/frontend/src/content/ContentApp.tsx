@@ -28,7 +28,7 @@ const formatErrorMessage = (error: string | Error | null): string => {
 };
 
 const ContentApp: React.FC = () => {
-  const { contextResume, user, lastAdvocates, setLastContextAdvocates, userEmails, setContextUserEmails, jobInfo, setJobInfo, updateJobInfo } = useUser();
+  const { contextResume, user, lastAdvocates, setLastContextAdvocates, userEmails, setContextUserEmails, jobInfo, updateJobInfo } = useUser();
 
   const [advocates, setAdvocates] = useState<Employee[]>([]);
   const [selectedAdvocate, setSelectedAdvocate] = useState<Employee | null>(null);
