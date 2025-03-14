@@ -13,6 +13,8 @@ export const extractJobInfoHandler = async (
   try {
     const { pageContent } = request.body;
 
+    console.log("Page content:", pageContent);
+
     const response = await anthropic.messages.create({
       model: "claude-3-5-haiku-20241022",
       max_tokens: 1000,
@@ -20,6 +22,8 @@ export const extractJobInfoHandler = async (
         {
           role: "user",
           content: `Extract the job title, company name, company domain, company background, job requirements, and potential advocates from the following job description in json format.
+
+          If you are given information about multiple positions at multiple companies, only extract information from the position and company that you have the most information about. Often times, many jobs postings will appear in a sidebar, but are not the job posting that the user has clicked on.
 
           For the job title:
           - Extract only the core job title without location, remote status, or technology stack
@@ -44,7 +48,7 @@ export const extractJobInfoHandler = async (
           - jobRequirements: The job requirements as a string
           - potentialAdvocates: Array of 3-5 job titles of people who would be valuable connections
 
-          Job description: ${pageContent.substring(0, 2000)}`
+          Job description: ${pageContent}`
         }
       ],
       system: "You are a helpful assistant that extracts job information from job postings. Always respond with valid JSON containing all requested fields. For job titles and potential advocates, extract only the core titles without location, remote status, or technology stack."

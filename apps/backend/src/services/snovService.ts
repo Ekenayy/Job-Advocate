@@ -143,7 +143,7 @@ export const searchDomainEmployees = async (
           // Poll the result URL until we get emails - use longer timeout for email searches
           // Pass true for checkValidEmails to enable early termination when valid emails are found
           const resultUrl = searchResponse.data.links.result;
-          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 10, 3000, true);
+          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 15, 4000, true);
           
           console.log(`Email result for ${prospect.first_name}:`, emailResult);
           
@@ -242,8 +242,8 @@ export const searchDomainEmployees = async (
 const pollForResults = async (
   resultUrl: string,
   accessToken: string,
-  maxAttempts = 10, 
-  initialDelay = 2000,  // Start with a 2-second delay
+  maxAttempts = 15, 
+  initialDelay = 2000,  // Start with a 3-second delay
   checkValidEmails = false // Whether to check for valid emails in the response
 ): Promise<any> => {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
