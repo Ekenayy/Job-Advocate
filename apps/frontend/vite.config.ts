@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import { manifestPlugin } from './vite-plugin-manifest'
+import { crx } from '@crxjs/vite-plugin'
+import manifest from './manifest.json'
 import path from 'path'
 
 // https://vitejs.dev/config/
@@ -32,40 +33,12 @@ export default defineConfig(({ mode }) => {
     define: envWithProcessPrefix,
     plugins: [
       react(),
-      manifestPlugin(),
+      crx({ manifest }),
     ],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    build: {
-      rollupOptions: {
-        input: {
-          main: path.resolve(__dirname, 'index.html'),
-          background: path.resolve(__dirname, 'src/background/background.ts'),
-          content: path.resolve(__dirname, 'src/content/content.tsx')
-        },
-        output: {
-          entryFileNames: (chunkInfo) => {
-            // Use consistent filenames for background and content scripts
-            if (chunkInfo.name === 'background') {
-              return 'assets/background.js';
-            }
-            if (chunkInfo.name === 'content') {
-              return 'assets/content.js';
-            }
-            return 'assets/[name]-[hash].js';
-          },
-          assetFileNames: (assetInfo) => {
-            // Don't hash favicon.svg so it can be referenced directly in manifest
-            if (assetInfo.name === 'favicon.svg') {
-              return 'assets/favicon.svg';
-            }
-            return 'assets/[name]-[hash][extname]';
-          }
-        }
-      }
-    }
   }
 })
