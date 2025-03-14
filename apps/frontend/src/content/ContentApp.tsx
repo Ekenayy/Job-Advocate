@@ -28,6 +28,7 @@ const ContentApp: React.FC = () => {
   const [AIEmail, setAIEmail] = useState<{ subject: string; body: string } | null>(null);
   const [error, setError] = useState<string | Error | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(!lastAdvocates.length);
+  const [isJobListingPage, setIsJobListingPage] = useState(false);
 
   useEffect(() => {
     if (lastAdvocates.length > 0) {
@@ -38,6 +39,7 @@ const ContentApp: React.FC = () => {
   const fetchJobInfoAndEmployees = async () => {
     setIsLoading(true);
     setError(null); // Clear previous errors
+    setIsJobListingPage(false); // Reset job listing page flag
     
     try {
       // Get current tab
@@ -45,8 +47,17 @@ const ContentApp: React.FC = () => {
       if (!tab?.id) throw new Error('No active tab found');
 
       // Get job info from content script
+      console.log('Sending GET_JOB_INFO message to tab:', tab.id);
       const jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
       console.log('Job info received:', jobInfo);
+
+      // Check if we're on a job listing page - do this check FIRST before any other processing
+      if (jobInfo.isJobListingPage) {
+        console.log('Job listing page detected, showing warning UI');
+        setIsJobListingPage(true);
+        setIsLoading(false); // Stop loading immediately
+        return; // Exit early without making backend calls
+      }
 
       if (!jobInfo.isJobSite) {
         throw new Error('This page does not appear to be a job posting');
@@ -61,6 +72,7 @@ const ContentApp: React.FC = () => {
       });
 
       // Fetch employees using POST with request body
+      console.log('Fetching employees from backend...');
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/search`, {
         method: 'POST',
         headers: {
@@ -92,8 +104,15 @@ const ContentApp: React.FC = () => {
 
     } catch (error) {
       console.error('Error:', error);
+      console.log("error instanceof ErrorWithDetails", error instanceof ErrorWithDetails);
       if (error instanceof ErrorWithDetails) {
-        setError(error.details);
+        console.log("error.code", error.code);
+        if (error.code == "MISSING_PARAMETERS") {
+          console.log("setting error to MISSING_PARAMETERS");
+          setError("There was an error fetching employees. Please make sure you are on a job page.");
+        } else {  
+          setError(error.details);
+        }
       } else {
         setError(new ErrorWithDetails(
           error instanceof Error ? error.message : 'An error occurred',
@@ -199,7 +218,10 @@ const ContentApp: React.FC = () => {
     
   };
 
-  if (showConfirmation) {
+  console.log("isJobListingPage", isJobListingPage);
+
+
+  if (showConfirmation && !isJobListingPage) {
     return (
       <div className="p-4">
         <ConfirmationDialog
@@ -212,8 +234,80 @@ const ContentApp: React.FC = () => {
             <p className="text-red-700 font-medium">
               {error instanceof Error ? error.message : error}
             </p>
+            {error instanceof ErrorWithDetails && error.details && (
+              <p className="text-red-600 mt-2">
+                {error.details}
+              </p>
+            )}
+            {error instanceof ErrorWithDetails && error.suggestions && error.suggestions.length > 0 && (
+              <ul className="mt-2 list-disc list-inside text-red-600">
+                {error.suggestions.map((suggestion, index) => (
+                  <li key={index}>{suggestion}</li>
+                ))}
+              </ul>
+            )}
           </div>
         )}  
+      </div>
+    );
+  }
+  // Special UI for job listing pages
+  if (isJobListingPage) {
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-semibold">Job Advocate</h1>
+          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+            <FaSearchengin className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="bg-amber-50 border border-amber-300 rounded-lg p-4 mb-4">
+          <div className="flex items-center mb-3">
+            <svg className="w-6 h-6 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <h2 className="text-amber-800 font-medium text-lg">
+              This appears to be a job listing page
+            </h2>
+          </div>
+          
+          <p className="text-amber-700 mb-4">
+            Job Advocate works best with individual job postings, not search results or job listing pages.
+          </p>
+          
+          <div className="bg-white rounded-lg p-4 border border-amber-200 mb-4">
+            <h3 className="font-medium text-gray-800 mb-3">How to find individual job postings on sites like Glassdoor and Indeed:</h3>
+            <ol className="list-decimal list-inside text-gray-700 space-y-2">
+              <li className="pb-2">
+                <span className="font-medium">Click on a job title</span> from the list of search results
+                <img src="https://i.imgur.com/example1.png" alt="Click on job title" className="hidden" />
+              </li>
+              <li className="pb-2">
+                <span className="font-medium">Wait for the full job details</span> to load on the right side or in a new page
+              </li>
+              <li>
+                <span className="font-medium">Look for the "Apply" button</span> to confirm you're viewing a complete job posting
+              </li>
+            </ol>
+          </div>
+          
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4">
+            <p className="text-blue-800 text-sm">
+              <strong>Tip:</strong> On job listing pages, you may need to click a job title, then wait to be redirected to a new page with the full job details. 
+            </p>
+          </div>
+          
+          <button 
+            onClick={fetchJobInfoAndEmployees} 
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md transition-colors flex items-center justify-center"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Try Again After Selecting a Job
+          </button>
+        </div>
       </div>
     );
   }
