@@ -62,8 +62,27 @@ const ContentApp: React.FC = () => {
 
       // Get job info from content script
       console.log('Sending GET_JOB_INFO message to tab:', tab.id);
-      const jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
-      console.log('Job info received:', jobInfoResponse);
+      let jobInfoResponse;
+       try {
+         jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+         console.log('Job info received:', jobInfoResponse);
+       } catch (msgError) {
+         console.error('Error sending message to content script:', msgError);
+         // If we can't communicate with the content script, try to inject it
+         try {
+           await chrome.scripting.executeScript({
+             target: { tabId: tab.id },
+             files: ['assets/content.js']
+           });
+           // Try again after injecting the content script
+           jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+           console.log('Job info received after script injection:', jobInfoResponse);
+         } catch (injectionError) {
+           console.error('Error injecting content script:', injectionError);
+           throw new Error('Unable to communicate with the page. Please refresh the page and try again.');
+         }
+       }
+      console.log('Job info received:', jobInfo);
 
       // Check if we're on a job listing page - do this check FIRST before any other processing
       if (jobInfoResponse.isJobListingPage) {
