@@ -35,3 +35,11 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Chrome Extension
+dist.zip
+
+
+# Build scripts
+build-chrome.sh
+*.sh
