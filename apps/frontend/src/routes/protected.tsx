@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 import { GmailService } from "../services/gmailService";
 
 function ProtectedContent() {
-  const { isOnboardingComplete, completeOnboarding, checkIfUserIsOnboarded, contextResume } = useContextUser();
+  const { isOnboardingComplete, completeOnboarding, checkIfUserIsOnboarded } = useContextUser();
   const [isChecking, setIsChecking] = useState(true);
-  const [hasGmailToken, setHasGmailToken] = useState(false);
+  const [_hasGmailToken, setHasGmailToken] = useState(false);
   
   // Check if user is onboarded when component mounts
   useEffect(() => {
