@@ -48,11 +48,5 @@
       "js": ["src/content/content.tsx"],
       "matches": ["<all_urls>"]
     }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["index.html", "assets/*"],
-      "matches": ["<all_urls>"]
-    }
   ]
 }
