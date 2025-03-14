@@ -32,6 +32,7 @@ dist
 dist-ssr
 *.local
 .env
+.env.production
 package-lock.json
 pnpm-lock.yaml
 
