@@ -143,13 +143,33 @@ const extractJobInfo = async () => {
 };
 
 // Listen for messages from the extension
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("Content script received message:", request);
+  
   if (request.action === "GET_JOB_INFO") {
-    extractJobInfo().then(sendResponse);
+    extractJobInfo()
+      .then(jobInfo => {
+        console.log("Sending job info response:", jobInfo);
+        sendResponse(jobInfo);
+      })
+      .catch(error => {
+        console.error("Error extracting job info:", error);
+        sendResponse({
+          jobTitle: "",
+          domain: window.location.hostname.replace("www.", ""),
+          companyBackground: "",
+          jobRequirements: "",
+          companyName: window.location.hostname.split('.')[0],
+          potentialAdvocates: [],
+          isJobSite: isJobSite(),
+          error: error.message
+        });
+      });
     return true; // Required for async response
   } else if (request.action === "OPEN_SIDE_PANEL") {
     chrome.runtime.sendMessage({ action: "OPEN_SIDE_PANEL" });
-    return true; // Add return value for this path
+    sendResponse({ success: true });
+    return true;
   }
   return false; // Add default return
 });

@@ -14,7 +14,7 @@
     "https://*.clerk-telemetry.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.clerk.accounts.dev https://*.clerk.accounts.io https://*.clerk.accounts.run https://*.clerk.app https://*.clerk-telemetry.com/ https://*.supabase.co __API_URL__"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ http://localhost/ https://www.googleapis.com/ https://*.clerk.com https://*.clerk.accounts.dev https://*.clerk.accounts.io https://*.clerk.accounts.run https://*.clerk.app https://*.clerk-telemetry.com/ https://*.supabase.co __API_URL__"
   },
   "action": { 
     "default_title": "Side Panel",
@@ -29,7 +29,8 @@
     "identity.email",
     "storage",
     "cookies",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "oauth2": {
     "client_id": "__OAUTH_CLIENT_ID__",
@@ -43,6 +44,12 @@
   "content_scripts": [
     {
       "js": ["assets/content.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "assets/*"],
       "matches": ["<all_urls>"]
     }
   ]

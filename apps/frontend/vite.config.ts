@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
   )
   
   return {
+    base: './', // Use relative paths instead of absolute paths
     define: envWithProcessPrefix,
     plugins: [
       react(),

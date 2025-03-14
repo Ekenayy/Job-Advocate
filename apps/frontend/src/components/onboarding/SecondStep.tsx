@@ -99,7 +99,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
       <div className="flex flex-col gap-2">
         <label className="text-sm text-gray-600">
           {hasExistingResume 
-            ? "Your Gmail token has expired. Please reconnect your account to continue." 
+            ? "Your Gmail token has expired. Please reconnect your account so that we can send emails with our service." 
             : "Connect your Gmail account to send emails"}
         </label>
         <button
