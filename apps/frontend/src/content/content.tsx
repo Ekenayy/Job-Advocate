@@ -192,6 +192,7 @@ const isJobSite = () => {
 const extractJobInfo = async () => {
   const currentDomain = window.location.hostname.replace("www.", "");
   const pageText = document.body.innerText;
+  const pageUrl = window.location.href;
   const timestamp = Date.now(); // Add timestamp
 
   try {
@@ -214,6 +215,10 @@ const extractJobInfo = async () => {
       };
     }
 
+    // Extract domain hints from the page
+    const domainHints = extractDomainHints();
+    console.log("Domain hints extracted:", domainHints);
+
     // Make sure we're using the absolute backend URL, not a relative one
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     
@@ -231,7 +236,10 @@ const extractJobInfo = async () => {
           "Cache-Control": "no-cache" // Add no-cache header
         },
         body: JSON.stringify({ 
-          pageContent: pageText.substring(0, 3000)
+          pageContent: pageText.substring(0, 3000),
+          pageUrl: pageUrl,
+          currentDomain: currentDomain,
+          domainHints: domainHints
         }),
       }
     );
@@ -267,6 +275,122 @@ const extractJobInfo = async () => {
       isJobListingPage: isJobListingPage()
     };
   }
+};
+
+// Helper function to extract domain hints from the page
+const extractDomainHints = () => {
+  const hints = {
+    links: [] as string[],
+    emails: [] as string[],
+    metaTags: {} as Record<string, string>,
+    socialProfiles: [] as string[],
+    hostingPlatform: "",
+  };
+  
+  // 1. Extract links that might point to the company website
+  const links = Array.from(document.querySelectorAll('a[href]'));
+  const companyLinks = links.filter(link => {
+    const href = (link.getAttribute('href') || '').toLowerCase();
+    // Look for company website links - often labeled as "website", "company site", etc.
+    const linkText = link.textContent?.toLowerCase() || '';
+    return (
+      (linkText.includes('website') || 
+       linkText.includes('company') || 
+       linkText.includes('homepage') ||
+       linkText.includes('official site')) &&
+      href.startsWith('http') &&
+      !href.includes('linkedin.com') &&
+      !href.includes('glassdoor.com') &&
+      !href.includes('indeed.com')
+    );
+  });
+  
+  // Add company links to hints
+  hints.links = companyLinks.map(link => link.getAttribute('href') || '').filter(Boolean);
+  
+  // 2. Extract emails that might contain company domain
+  const emailRegex = /[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+  const pageText = document.body.innerText;
+  let match;
+  const emailDomains = new Set<string>();
+  
+  while ((match = emailRegex.exec(pageText)) !== null) {
+    if (match[1]) {
+      emailDomains.add(match[1]);
+    }
+  }
+  
+  hints.emails = Array.from(emailDomains);
+  
+  // 3. Extract meta tags that might contain company info
+  const metaTags = document.querySelectorAll('meta[property], meta[name]');
+  metaTags.forEach(tag => {
+    const name = tag.getAttribute('property') || tag.getAttribute('name');
+    const content = tag.getAttribute('content');
+    
+    if (name && content) {
+      // Look for Open Graph tags, Twitter cards, etc.
+      if (
+        name.includes('og:site_name') || 
+        name.includes('og:url') || 
+        name.includes('twitter:domain') ||
+        name.includes('application-name')
+      ) {
+        hints.metaTags[name] = content;
+      }
+    }
+  });
+  
+  // 4. Look for social media profile links
+  const socialLinks = links.filter(link => {
+    const href = (link.getAttribute('href') || '').toLowerCase();
+    return (
+      href.includes('linkedin.com/company/') ||
+      href.includes('facebook.com/') ||
+      href.includes('twitter.com/') ||
+      href.includes('instagram.com/')
+    ) && !href.includes('/share') && !href.includes('/sharer');
+  });
+  
+  hints.socialProfiles = socialLinks.map(link => link.getAttribute('href') || '').filter(Boolean);
+  
+  // 5. Detect if the job is hosted on a known platform
+  const currentUrl = window.location.href.toLowerCase();
+  if (currentUrl.includes('greenhouse.io')) {
+    hints.hostingPlatform = 'greenhouse';
+  } else if (currentUrl.includes('lever.co')) {
+    hints.hostingPlatform = 'lever';
+  } else if (currentUrl.includes('workday.com')) {
+    hints.hostingPlatform = 'workday';
+  } else if (currentUrl.includes('ashbyhq.com')) {
+    hints.hostingPlatform = 'ashby';
+  }
+  
+  // If we're on a job hosting platform, try to extract the company name from the URL
+  if (hints.hostingPlatform) {
+    const urlParts = currentUrl.split('/');
+    if (hints.hostingPlatform === 'greenhouse') {
+      // Example: https://boards.greenhouse.io/companyname/jobs/12345
+      const ghIndex = urlParts.findIndex(part => part.includes('greenhouse.io'));
+      if (ghIndex >= 0 && ghIndex + 1 < urlParts.length) {
+        const possibleCompany = urlParts[ghIndex + 1].split('?')[0];
+        if (possibleCompany && possibleCompany !== 'jobs') {
+          hints.metaTags['greenhouse-company'] = possibleCompany;
+        }
+      }
+    } else if (hints.hostingPlatform === 'lever') {
+      // Example: https://jobs.lever.co/companyname/12345
+      const leverIndex = urlParts.findIndex(part => part.includes('lever.co'));
+      if (leverIndex >= 0 && leverIndex + 1 < urlParts.length) {
+        const possibleCompany = urlParts[leverIndex + 1].split('?')[0];
+        if (possibleCompany) {
+          hints.metaTags['lever-company'] = possibleCompany;
+        }
+      }
+    }
+  }
+  
+  return hints;
 };
 
 // Listen for messages from the extension
