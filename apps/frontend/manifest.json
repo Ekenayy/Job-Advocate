@@ -6,13 +6,17 @@
     "http://localhost/",
     "ws://localhost/",
     "https://*.clerk.com/*",
+    "https://*.clerk.accounts.dev/*",
+    "https://*.clerk.accounts.io/*",
+    "https://*.clerk.accounts.run/*",
+    "https://*.clerk.app/*",
     "https://*.supabase.co/*",
     "https://*.clerk-telemetry.com/*",
     "https://inreach-staging.onrender.com/*",
     "https://job-advocate.onrender.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ ws://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.supabase.co https://inreach-staging.onrender.com https://job-advocate.onrender.com"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ ws://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.clerk.accounts.dev https://*.clerk.accounts.io https://*.clerk.accounts.run https://*.clerk.app https://*.clerk-telemetry.com https://*.supabase.co https://inreach-staging.onrender.com https://job-advocate.onrender.com"
   },
   "action": { 
     "default_title": "Side Panel",
@@ -42,6 +46,12 @@
   "content_scripts": [
     {
       "js": ["src/content/content.tsx"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["index.html", "assets/*"],
       "matches": ["<all_urls>"]
     }
   ]

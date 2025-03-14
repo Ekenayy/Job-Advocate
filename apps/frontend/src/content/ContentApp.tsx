@@ -36,7 +36,6 @@ const ContentApp: React.FC = () => {
   }, [lastAdvocates]);
 
   const fetchJobInfoAndEmployees = async () => {
-    console.log('fetchJobInfoAndEmployees');
     setIsLoading(true);
     setError(null); // Clear previous errors
     
@@ -46,26 +45,8 @@ const ContentApp: React.FC = () => {
       if (!tab?.id) throw new Error('No active tab found');
 
       // Get job info from content script
-      let jobInfo;
-      try {
-        jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
-        console.log('Job info received:', jobInfo);
-      } catch (msgError) {
-        console.error('Error sending message to content script:', msgError);
-        // If we can't communicate with the content script, try to inject it
-        try {
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['assets/content.js']
-          });
-          // Try again after injecting the content script
-          jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
-          console.log('Job info received after script injection:', jobInfo);
-        } catch (injectionError) {
-          console.error('Error injecting content script:', injectionError);
-          throw new Error('Unable to communicate with the page. Please refresh the page and try again.');
-        }
-      }
+      const jobInfo = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+      console.log('Job info received:', jobInfo);
 
       if (!jobInfo.isJobSite) {
         throw new Error('This page does not appear to be a job posting');
