@@ -154,11 +154,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     await setToStorage('jobInfo', updatedInfo);
   };
 
-  const checkOnboardingComplete = async () => {
-    const onboardingStatus = await getFromStorage<boolean>('isOnboardingComplete');
-    if (onboardingStatus) setIsOnboardingComplete(onboardingStatus);
-  };
-
   // Clear user data from storage when user signs out
   const clearUserData = async () => {
     console.log('User signed out, clearing data from storage');
