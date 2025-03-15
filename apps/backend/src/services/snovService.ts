@@ -6,6 +6,7 @@ interface Employee {
   position: string;
   source_page: string;
   email: string;
+  company: string;
 }
 
 // Define executive titles for easy reference
@@ -29,6 +30,7 @@ export const searchDomainEmployees = async (
       hasClientId: !!process.env.SNOV_CLIENT_ID,
       hasClientSecret: !!process.env.SNOV_CLIENT_SECRET,
     });
+
 
     // First get access token
     const tokenResponse = await fetch(
@@ -82,6 +84,11 @@ export const searchDomainEmployees = async (
     );
     console.log("Domain search complete:", domainResult);
 
+    // Get company name from domain result
+    let companyName = domainResult.data?.company_name;
+    
+    // If company name is not available from the API, extract it from the domain
+
     // Start prospects search
     const prospectsUrl = "https://api.snov.io/v2/domain-search/prospects/start";
     const prospectsResponse = await fetch(prospectsUrl, {
@@ -119,7 +126,8 @@ export const searchDomainEmployees = async (
             last_name: prospect.last_name,
             position: prospect.position,
             source_page: prospect.source_page,
-            email: prospect.emails.emails[0].email
+            email: prospect.emails.emails[0].email,
+            company: companyName
           };
         }
         
@@ -154,7 +162,8 @@ export const searchDomainEmployees = async (
               last_name: prospect.last_name,
               position: prospect.position,
               source_page: prospect.source_page,
-              email: emailResult.data.emails[0].email
+              email: emailResult.data.emails[0].email,
+              company: companyName
             };
           } else if (emailResult?.emails?.[0]?.email) {
             return {
@@ -162,7 +171,8 @@ export const searchDomainEmployees = async (
               last_name: prospect.last_name,
               position: prospect.position,
               source_page: prospect.source_page,
-              email: emailResult.emails[0].email
+              email: emailResult.emails[0].email,
+              company: companyName
             };
           }
         }
