@@ -21,13 +21,13 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         <div className="flex gap-4">
           <button
             onClick={onConfirm}
-            className="px-8 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="px-8 py-2 cursor-pointer bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
             Yes
           </button>
           <button
             onClick={onClose}
-            className="px-8 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+            className="px-8 py-2 cursor-pointer bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
           >
             No
           </button>
