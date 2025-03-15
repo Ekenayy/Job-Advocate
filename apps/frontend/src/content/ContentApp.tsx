@@ -504,7 +504,7 @@ const ContentApp: React.FC = () => {
       <div className="flex flex-col gap-14">
       { advocates.length > 0 ? advocates.map((employee) => {
           return (
-            <React.Fragment key={employee.id}>
+            <div key={employee.id}>
               {emailedAdvocates.some(advocate => advocate.email === employee.email) ? (
                 <div className="bg-green-50 p-4 rounded-lg">
                   <p className="text-green-600 font-medium">
@@ -517,22 +517,17 @@ const ContentApp: React.FC = () => {
               ) : (
                 (selectedAdvocate === null || selectedAdvocate === employee) && (
                   <Advocate
-                    name={employee.first_name + " " + employee.last_name}
-                    title={employee.position}
-                    company={jobInfo.companyName}
-                    initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
-                    email={employee.email}
+                    employee={employee}
                     isSelected={selectedAdvocate === employee}
                     isLoading={isLoading}
-                    linkedin={employee.source_page}
+                    isLoadingEmail={isLoadingEmail}
                     onCompose={() => handleCompose(employee)}
                     onSendEmail={handleSendEmail}
                     AIEmail={AIEmail}
-                    isLoadingEmail={isLoadingEmail}
                   />
                 )
               )}
-            </React.Fragment>
+            </div>
           );
         }) : (
           <div className="text-center text-gray-500">

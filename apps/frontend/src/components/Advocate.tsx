@@ -5,24 +5,35 @@ import { PropagateLoader } from 'react-spinners';
 import Skeleton from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { Paywall } from './paywall/Paywall';
+import { Employee } from '../types/Employee';
+
 interface AdvocateProps {
-  name: string;
-  title: string;
-  company: string;
-  initials: string;
-  linkedin?: string;
+  employee: Employee;
   isSelected: boolean;
   isLoading: boolean;
   isLoadingEmail: boolean;
-  email: string;
   onCompose: () => void;
   onSendEmail: (e: React.FormEvent<HTMLFormElement>) => void;
   AIEmail: { subject: string; body: string } | null;
 }
 
-const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, linkedin, isSelected, isLoading, onCompose, onSendEmail, AIEmail, isLoadingEmail }) => {
+const Advocate: React.FC<AdvocateProps> = ({ 
+  employee, 
+  isSelected, 
+  isLoading, 
+  onCompose, 
+  onSendEmail, 
+  AIEmail, 
+  isLoadingEmail 
+}) => {
   const [emailContent, setEmailContent] = useState(AIEmail?.body || '');
   const [emailSubject, setEmailSubject] = useState(AIEmail?.subject || '');
+  
+  // Destructure employee properties
+  const { first_name, last_name, position, company, source_page } = employee;
+  const name = `${first_name} ${last_name}`;
+  const initials = `${first_name.charAt(0)}${last_name.charAt(0)}`;
+  const linkedin = source_page;
 
   const handleSubscribe = (plan: string) => {
     console.log(`Processing subscription for plan: ${plan}`)
@@ -50,7 +61,7 @@ const Advocate: React.FC<AdvocateProps> = ({ name, title, company, initials, lin
       </div>
       <div className="flex text-md text-black justify-between gap-6">
         <span className="font-bold">{company}</span>
-        <span>{title}</span>
+        <span>{position}</span>
       </div>
       {isSelected && 
       <form className="flex flex-col gap-6" onSubmit={onSendEmail}>

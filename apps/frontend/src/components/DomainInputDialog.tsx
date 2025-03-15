@@ -89,7 +89,7 @@ const DomainInputDialog: React.FC<DomainInputDialogProps> = ({
       
       <p className="text-gray-600 mb-4">
         We couldn't automatically determine the correct domain for <strong>{companyName}</strong>. 
-        We guessed <strong>{guessedDomain}</strong>. If this incorrect, please enter the company's domain to continue.
+        We guessed <strong>{guessedDomain}</strong>. If this incorrect, please enter the company's correct domain to continue.
       </p>
       
       <form onSubmit={handleSubmit}>

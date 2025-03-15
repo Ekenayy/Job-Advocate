@@ -140,7 +140,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "PING" },
-          (response) => {
+          () => {
             if (chrome.runtime.lastError) {
               console.log("Content script not available:", chrome.runtime.lastError.message);
               
@@ -172,7 +172,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                       chrome.tabs.sendMessage(
                         tabId,
                         { action: "GET_JOB_INFO" },
-                        (response) => {
+                        () => {
                           if (chrome.runtime.lastError) {
                             console.error("Error getting job info after injection:", chrome.runtime.lastError.message);
                             sendResponse({ 
@@ -245,7 +245,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // Listen for tab updates to track when content scripts are loaded
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === 'complete') {
     // When a tab is fully loaded, remove it from our tracking set
     // The content script will re-add itself if it loads
