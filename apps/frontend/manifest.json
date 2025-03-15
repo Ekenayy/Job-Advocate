@@ -4,6 +4,8 @@
   "version": "1.0.1",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1dstNzn21ux6zbW9PIvKH6uZEoz8qUl0Uhu+ZfxThbP1at4hf0wom7fhCDOCwgQ2mZVCBiEqsef0g6cubgOTRj3jRe+iBMTMnuSOUbRYpmdHUa+GcDBjgoQ+T//gy93OUcB/UJ42KhjL1FTzEpPWDKL5pKhHwUlsgW80K++4DV0uKjzoylsGgZNp12eXQZ2jJHqM5aHXleT33cl+hcuxs6beocLiwuY7N/2yVgf0uxTdtopn84oYWQPhLep3melkVI7FDWL1o/NepcqK78cV6qK7tUxl2HPwhsbfT49zEbkZSsfEs2kjTC8mSBp1+cHsi/iFVIl8ypcy33Otbup4awIDAQAB",
   "host_permissions": [
+    "http://*/*",
+    "https://*/*",
     "http://localhost/",
     "ws://localhost/",
     "https://*.clerk.com/*",
@@ -29,7 +31,9 @@
     "identity.email",
     "storage",
     "cookies",
-    "activeTab"
+    "activeTab",
+    "scripting",
+    "tabs"
   ],
   "oauth2": {
     "client_id": "807605227538-lpcgigjlkore6m374rj9aqjqbdrrvs24.apps.googleusercontent.com",
@@ -44,6 +48,13 @@
   "content_scripts": [
     {
       "js": ["src/content/content.tsx"],
+      "matches": ["<all_urls>"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*", "src/*"],
       "matches": ["<all_urls>"]
     }
   ]

@@ -5,15 +5,17 @@ interface DomainInputDialogProps {
   onSubmit: (domain: string) => void;
   onCancel: () => void;
   isLoading: boolean;
+  guessedDomain: string;
 }
 
 const DomainInputDialog: React.FC<DomainInputDialogProps> = ({
   companyName,
   onSubmit,
   onCancel,
-  isLoading
+  isLoading,
+  guessedDomain
 }) => {
-  const [domain, setDomain] = useState('');
+  const [domain, setDomain] = useState(guessedDomain);
   const [error, setError] = useState('');
 
   // Function to extract domain from URL
@@ -87,7 +89,7 @@ const DomainInputDialog: React.FC<DomainInputDialogProps> = ({
       
       <p className="text-gray-600 mb-4">
         We couldn't automatically determine the correct domain for <strong>{companyName}</strong>. 
-        Please enter the company's domain to continue.
+        We guessed <strong>{guessedDomain}</strong>. If this incorrect, please enter the company's domain to continue.
       </p>
       
       <form onSubmit={handleSubmit}>

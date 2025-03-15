@@ -190,6 +190,7 @@ const isJobSite = () => {
 
 // Function to extract job title based on the job site
 const extractJobInfo = async () => {
+  console.log('extracting job info from the extractJobInfo function');
   const currentDomain = window.location.hostname.replace("www.", "");
   const pageText = document.body.innerText;
   const pageUrl = window.location.href;
@@ -393,19 +394,54 @@ const extractDomainHints = () => {
   return hints;
 };
 
+// Send a message to the background script to indicate that the content script is ready
+console.log("Job Advocate content script loaded and ready");
+chrome.runtime.sendMessage({ action: "CONTENT_SCRIPT_READY", url: window.location.href });
+
 // Listen for messages from the extension
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log('Content script received message:', request);
+  
   if (request.action === "GET_JOB_INFO") {
-    extractJobInfo().then(sendResponse);
+    console.log('getting job info from content script....');
+    extractJobInfo().then(jobInfo => {
+      // Send the job info back to the extension
+      chrome.runtime.sendMessage({ 
+        action: "JOB_INFO_RESULT", 
+        jobInfo: jobInfo,
+        tabId: sender.tab?.id
+      });
+      
+      // Also send a response to the original request
+      sendResponse(jobInfo);
+    }).catch(error => {
+      console.error("Error extracting job info:", error);
+      chrome.runtime.sendMessage({ 
+        action: "JOB_INFO_ERROR", 
+        error: error.message,
+        tabId: sender.tab?.id
+      });
+      
+      // Send an error response
+      sendResponse({ error: error.message });
+    });
+    
     return true; // Required for async response
   } else if (request.action === "OPEN_SIDE_PANEL") {
     chrome.runtime.sendMessage({ action: "OPEN_SIDE_PANEL" });
     return true; // Add return value for this path
+  } else if (request.action === "PING") {
+    // Simple ping to check if content script is loaded
+    console.log("Received PING, responding with current URL");
+    sendResponse({ status: "alive", url: window.location.href });
+    return true;
   }
+  
   return false; // Add default return
 });
 
 // Auto-open side panel if we're on a job site
 if (isJobSite()) {
+  console.log("Job site detected, opening side panel");
   chrome.runtime.sendMessage({ action: "OPEN_SIDE_PANEL" });
 }

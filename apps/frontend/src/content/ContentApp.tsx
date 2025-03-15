@@ -48,6 +48,27 @@ const ContentApp: React.FC = () => {
     }
   }, [lastAdvocates]);
 
+  // Helper function to get the correct content script path
+  const getContentScriptPath = () => {
+    // In development, use the source path
+    // if (import.meta.env.DEV) {
+    //   return 'src/content/content.tsx';
+    // }
+    
+    // In production, we need to find the content script in the assets directory
+    // This will match any file that starts with "content.tsx" in the assets directory
+    return { 
+      func: () => {
+        console.log('Injecting content script function');
+        // This function runs in the context of the web page
+        // It will notify the extension that it needs to inject the content script
+        chrome.runtime.sendMessage({ 
+          action: "INJECT_CONTENT_SCRIPT" 
+        });
+      }
+    };
+  };
+
   const fetchJobInfoAndEmployees = async () => {
     setIsLoading(true);
     setError(null); // Clear previous errors
@@ -68,12 +89,20 @@ const ContentApp: React.FC = () => {
          console.log('Job info received:', jobInfoResponse);
        } catch (msgError) {
          console.error('Error sending message to content script:', msgError);
+         console.log('trying to inject content script');
          // If we can't communicate with the content script, try to inject it
          try {
+           const contentScriptPath = getContentScriptPath();
+           
+           // Use the function approach to notify the background script
            await chrome.scripting.executeScript({
              target: { tabId: tab.id },
-             files: ['assets/content.js']
+             func: contentScriptPath.func
            });
+           
+           // Wait a moment for the background script to handle the injection
+           await new Promise(resolve => setTimeout(resolve, 1000));
+           
            // Try again after injecting the content script
            jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
            console.log('Job info received after script injection:', jobInfoResponse);
@@ -383,6 +412,7 @@ const ContentApp: React.FC = () => {
         
         <DomainInputDialog
           companyName={jobInfo.companyName}
+          guessedDomain={jobInfo.domain || ""}
           onSubmit={handleDomainSubmit}
           onCancel={handleDomainInputCancel}
           isLoading={isLoading}
