@@ -29,8 +29,7 @@
     "identity.email",
     "storage",
     "cookies",
-    "activeTab",
-    "scripting"
+    "activeTab"
   ],
   "oauth2": {
     "client_id": "807605227538-lpcgigjlkore6m374rj9aqjqbdrrvs24.apps.googleusercontent.com",
