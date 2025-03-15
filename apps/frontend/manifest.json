@@ -14,7 +14,7 @@
     "https://job-advocate.onrender.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ https://www.googleapis.com/ https://*.clerk.com https://*.supabase.co https://*.useinreach.com https://inreach-staging.onrender.com https://clerk.www.useinreach.com/* https://job-advocate.onrender.com"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' http://localhost:5173/ ws://localhost/ https://www.googleapis.com/ https://*.clerk.com https://*.supabase.co https://*.useinreach.com https://inreach-staging.onrender.com https://clerk.www.useinreach.com/* https://job-advocate.onrender.com"
   },
   "action": { 
     "default_title": "Side Panel",
