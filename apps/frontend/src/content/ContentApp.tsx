@@ -50,11 +50,6 @@ const ContentApp: React.FC = () => {
 
   // Helper function to get the correct content script path
   const getContentScriptPath = () => {
-    // In development, use the source path
-    // if (import.meta.env.DEV) {
-    //   return 'src/content/content.tsx';
-    // }
-    
     // In production, we need to find the content script in the assets directory
     // This will match any file that starts with "content.tsx" in the assets directory
     return { 

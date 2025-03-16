@@ -73,8 +73,6 @@ const SecondStep: React.FC<SecondStepProps> = ({
     ? "Reconnect your Gmail account" 
     : "Welcome, let's setup your account";
 
-    console.log('hasExistingResume', hasExistingResume)
-
   return (
     <div className="flex flex-col gap-6 p-4 w-full max-w-sm">
       <div className="flex items-center gap-3">

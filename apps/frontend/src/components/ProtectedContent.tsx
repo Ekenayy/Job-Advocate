@@ -23,6 +23,7 @@ export const ProtectedContent = () => {
         setHasGmailToken(isGmailAuthenticated);
         
         // Check overall onboarding status
+        console.log("Checking onboarding status...");
         await checkIfUserIsOnboarded();
       } catch (error) {
         console.error("Error checking onboarding status:", error);
