@@ -75,7 +75,6 @@ export class GmailService {
   async authenticate(): Promise<string> {
     // Check if we already have a valid token
     if (await this.isAuthenticated()) {
-      console.log('isAuthenticated', this.accessToken);
       return this.accessToken!;
     }
 

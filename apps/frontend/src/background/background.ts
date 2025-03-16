@@ -1,5 +1,3 @@
-console.log("Hello world from bakground script");
-
 // Keep track of which tabs have content scripts loaded
 const contentScriptTabs = new Set<number>();
 
@@ -30,11 +28,8 @@ const findContentScriptFile = (): string | null => {
 
 // Listen for messages from content scripts and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Background script received message:", message);
-  
   // Track when content scripts are loaded
   if (message.action === "CONTENT_SCRIPT_READY" && sender.tab?.id) {
-    console.log(`Content script ready in tab ${sender.tab.id}`);
     contentScriptTabs.add(sender.tab.id);
     sendResponse({ status: "acknowledged" });
     return true;
@@ -42,7 +37,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle opening the side panel
   if (message.action === "OPEN_SIDE_PANEL") {
-    console.log("Opening side panel");
     if (sender.tab?.windowId) {
       chrome.sidePanel.open({ windowId: sender.tab.windowId });
     } else {
@@ -59,7 +53,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle content script injection requests
   if (message.action === "INJECT_CONTENT_SCRIPT") {
-    console.log("Received request to inject content script");
     
     // Get the active tab
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
@@ -81,15 +74,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           return;
         }
         
-        console.log(`Injecting content script: ${contentScriptFile}`);
-        
         // Inject the content script
         await chrome.scripting.executeScript({
           target: { tabId },
           files: [contentScriptFile]
         });
         
-        console.log("Content script injected successfully");
         contentScriptTabs.add(tabId);
         sendResponse({ status: "injected" });
       } catch (error) {
@@ -103,7 +93,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Forward job info from content script to side panel
   if (message.action === "JOB_INFO_RESULT" || message.action === "JOB_INFO_ERROR") {
-    console.log(`Received ${message.action} from content script`);
     // Broadcast to all extension pages (side panel will pick this up)
     chrome.runtime.sendMessage(message);
     sendResponse({ status: "forwarded" });
@@ -112,8 +101,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle requests to get job info from the current tab
   if (message.action === "GET_JOB_INFO_FROM_TAB") {
-    console.log("Received request to get job info from tab");
-    
     // Get the active tab
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length === 0) {
@@ -134,16 +121,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       
       // First check if the content script is loaded in this tab
       if (!contentScriptTabs.has(tabId)) {
-        console.log(`Content script not loaded in tab ${tabId}, sending ping to check`);
-        
         // Try to ping the content script to see if it's actually loaded
         chrome.tabs.sendMessage(
           tabId,
           { action: "PING" },
           () => {
-            if (chrome.runtime.lastError) {
-              console.log("Content script not available:", chrome.runtime.lastError.message);
-              
+            if (chrome.runtime.lastError) {              
               // Content script is not loaded, try to inject it
               const contentScriptFile = findContentScriptFile();
               
@@ -165,7 +148,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                       error: "Failed to inject content script: " + chrome.runtime.lastError.message 
                     });
                   } else {
-                    console.log("Content script injected, waiting for it to initialize...");
                     // Wait a moment for the content script to initialize
                     setTimeout(() => {
                       // Now try to get job info
@@ -179,7 +161,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                               error: "Error getting job info after injection: " + chrome.runtime.lastError.message 
                             });
                           } else {
-                            console.log("Successfully requested job info after injection");
                             sendResponse({ status: "requested" });
                           }
                         }
@@ -190,7 +171,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               );
             } else {
               // Content script is loaded but not in our tracking set
-              console.log("Content script is loaded but not tracked, adding to tracking set");
               contentScriptTabs.add(tabId);
               
               // Now request job info
@@ -204,7 +184,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                       error: "Error getting job info: " + chrome.runtime.lastError.message 
                     });
                   } else {
-                    console.log("Successfully requested job info, got initial response:", response);
                     sendResponse({ status: "requested" });
                   }
                 }
@@ -214,8 +193,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         );
       } else {
         // Content script is loaded according to our tracking
-        console.log(`Content script loaded in tab ${tabId}, requesting job info`);
-        
         chrome.tabs.sendMessage(
           tabId,
           { action: "GET_JOB_INFO" },
@@ -230,7 +207,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 error: "Error getting job info: " + chrome.runtime.lastError.message 
               });
             } else {
-              console.log("Successfully requested job info, got initial response:", response);
               sendResponse({ status: "requested" });
             }
           }

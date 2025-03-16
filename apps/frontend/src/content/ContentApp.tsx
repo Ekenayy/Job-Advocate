@@ -54,7 +54,6 @@ const ContentApp: React.FC = () => {
     // This will match any file that starts with "content.tsx" in the assets directory
     return { 
       func: () => {
-        console.log('Injecting content script function');
         // This function runs in the context of the web page
         // It will notify the extension that it needs to inject the content script
         chrome.runtime.sendMessage({ 
@@ -77,14 +76,11 @@ const ContentApp: React.FC = () => {
       if (!tab?.id) throw new Error('No active tab found');
 
       // Get job info from content script
-      console.log('Sending GET_JOB_INFO message to tab:', tab.id);
       let jobInfoResponse;
        try {
          jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
-         console.log('Job info received:', jobInfoResponse);
        } catch (msgError) {
          console.error('Error sending message to content script:', msgError);
-         console.log('trying to inject content script');
          // If we can't communicate with the content script, try to inject it
          try {
            const contentScriptPath = getContentScriptPath();
@@ -100,17 +96,14 @@ const ContentApp: React.FC = () => {
            
            // Try again after injecting the content script
            jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
-           console.log('Job info received after script injection:', jobInfoResponse);
          } catch (injectionError) {
            console.error('Error injecting content script:', injectionError);
            throw new Error('Unable to communicate with the page. Please refresh the page and try again.');
          }
        }
-      console.log('Job info received:', jobInfo);
 
       // Check if we're on a job listing page - do this check FIRST before any other processing
       if (jobInfoResponse.isJobListingPage) {
-        console.log('Job listing page detected, showing warning UI');
         setIsJobListingPage(true);
         setIsLoading(false); // Stop loading immediately
         return; // Exit early without making backend calls
@@ -139,14 +132,10 @@ const ContentApp: React.FC = () => {
 
     } catch (error) {
       console.error('Error in fetchJobInfoAndEmployees:', error);
-      console.log('Error type:', typeof error);
-      console.log('Is ErrorWithDetails:', error instanceof ErrorWithDetails);
-      
+
       if (error instanceof ErrorWithDetails) {
-        console.log('Error code:', error.code);
         setErrorCode(error.code);
 
-        console.log("jobInfo from context:", jobInfo);
         
         if (error.code === "NO_VALID_EMPLOYEES" && jobInfo) {
           console.log('Showing domain input dialog for NO_VALID_EMPLOYEES error');
@@ -179,7 +168,6 @@ const ContentApp: React.FC = () => {
   // New function to search employees with a specific domain
   const searchEmployees = async (domain: string, jobTitle: string, potentialAdvocates: string[]) => {
     try {
-      console.log('Fetching employees from backend with domain:', domain);
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/search`, {
         method: 'POST',
         headers: {
@@ -194,9 +182,7 @@ const ContentApp: React.FC = () => {
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.log('Error response from backend:', errorData);
-        console.log('Error code from backend:', errorData.code);
-        
+
         // Create an ErrorWithDetails object with the error data
         const errorWithDetails = new ErrorWithDetails(
           errorData.error || 'Failed to fetch employees',
@@ -285,7 +271,6 @@ const ContentApp: React.FC = () => {
       }
   
       const data = await response.json();
-      console.log('response data:', data);
       setAIEmail(data);
     } catch (error) {
       console.error('Error generating email:', error);
@@ -331,7 +316,6 @@ const ContentApp: React.FC = () => {
         setEmailedAdvocates([...emailedAdvocates, selectedAdvocate]);
         const databaseEmail = await createEmail(user?.externalId || "", selectedAdvocate.email, subject, content);
         setContextUserEmails([...userEmails, databaseEmail]);
-        console.log("Email sent successfully");
       } else {
         setError("There was an error sending the email. Please try again.");
       }
@@ -352,8 +336,6 @@ const ContentApp: React.FC = () => {
     setShowConfirmation(true);
     setError(null);
   }
-
-  console.log("showDomainInput", showDomainInput);
 
 
   if (showConfirmation && !isJobListingPage && !showDomainInput) {

@@ -170,7 +170,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   // Clear user data from storage when user signs out
   const clearUserData = async () => {
-    console.log('User signed out, clearing data from storage');
     await removeFromStorage('resume');
     await removeFromStorage('lastAdvocates');
     await removeFromStorage('userEmails');
@@ -193,12 +192,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Only run this effect after Clerk has loaded
     if (isLoaded) {
-      console.log('isLoaded', isLoaded);
-      console.log('previousSignInState', previousSignInState);
-      console.log('isSignedIn', isSignedIn);
       // If previously signed in and now signed out, clear data
       if (previousSignInState === true && !isSignedIn) {
-        console.log('clearing user data...');
         clearUserData();
       }
       

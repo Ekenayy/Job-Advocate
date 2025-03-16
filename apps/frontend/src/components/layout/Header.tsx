@@ -15,7 +15,6 @@ export const Header = () => {
   const handleUserButtonClick = (e: MouseEvent) => {
     if (userButtonRef.current?.contains(e.target as Node)) {
       const target = e.target as HTMLElement;
-      console.log("target", target);
       if (target.closest('button')?.closest('span')?.textContent === 'Update Resume') {
         e.preventDefault();
         navigate('/update-resume');

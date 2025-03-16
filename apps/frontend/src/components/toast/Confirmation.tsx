@@ -28,6 +28,7 @@ const Confirmation: React.FC<ConfirmationProps> = ({
       return () => clearTimeout(timer);
     } else {
       setIsVisible(false);
+      return () => {}; // Return empty cleanup function for this path
     }
   }, [show, autoHideDuration, onHide]);
 

@@ -19,8 +19,6 @@ export const createEmail = async (user_id: string, to_email: string, subject: st
 export const getEmails = async (user_id: string) => {
   const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/email/${user_id}`);
 
-  console.log('response', response);
-
   if (!response.ok) {
     console.error('Failed to get emails in backend but will not throw error', response);
   }
