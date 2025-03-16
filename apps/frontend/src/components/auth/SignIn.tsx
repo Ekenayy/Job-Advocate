@@ -31,7 +31,6 @@ export const SignIn = () => {
           }
         }}
         fallbackRedirectUrl={chrome.runtime.getURL('index.html')}
-        signUpUrl={chrome.runtime.getURL('index.html')}
       />
     </div>
   );

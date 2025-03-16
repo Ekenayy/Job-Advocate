@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useUser } from "../../context/UserProvder";
 import { PropagateLoader } from "react-spinners";
+import  Confirmation  from "../toast/Confirmation"; 
 
 const UpdateResume = () => {
   const { contextResume, setResume, user } = useUser();
   const [updatedResumeFile, setUpdatedResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -20,6 +22,7 @@ const UpdateResume = () => {
       return;
     }
 
+    setShowConfirmation(false);
     setIsLoading(true);
     setError(null);
 
@@ -45,6 +48,7 @@ const UpdateResume = () => {
 
       setResume(resumeResponse);
       setUpdatedResumeFile(null);
+      setShowConfirmation(true);
     } catch (error) {
       console.error('Error uploading resume:', error);
       setError('Failed to upload resume');
@@ -116,6 +120,7 @@ const UpdateResume = () => {
           )}
         </div>
       </div>
+      <Confirmation show={showConfirmation} text="Success!" />
     </div>
   );
 };

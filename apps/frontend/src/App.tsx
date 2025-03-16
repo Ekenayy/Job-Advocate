@@ -1,7 +1,7 @@
 import "./App.css";
 import { Header } from "./components/layout/Header";
 import { useNavigation } from "./context/NavigationContext";
-import { useAuth, useUser } from "@clerk/chrome-extension";
+import { useAuth } from "@clerk/chrome-extension";
 import { SignIn } from "./components/auth/SignIn";
 import { SignUp } from "./components/auth/SignUp";
 import { ProtectedContent } from "./components/ProtectedContent";
@@ -11,7 +11,6 @@ import { RingLoader } from "react-spinners";
 function App() {
   const { currentRoute, navigate } = useNavigation();
   const { isSignedIn, isLoaded } = useAuth();
-  const { user } = useUser();
   
   // Reset navigation when auth state changes
   useEffect(() => {

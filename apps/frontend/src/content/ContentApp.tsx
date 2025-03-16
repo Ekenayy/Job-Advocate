@@ -428,7 +428,7 @@ const ContentApp: React.FC = () => {
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Job Advocate</h1>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={handleClose} className="text-gray-400 cursor-pointer transition-colors duration-300 hover:text-blue-600">
             <FaSearchengin className="w-5 h-5" />
           </button>
         </div>
