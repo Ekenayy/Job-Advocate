@@ -13,11 +13,16 @@ if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
 
 const root = createRoot(document.getElementById('root')!)
 
+const EXTENSION_URL = chrome.runtime.getURL('.')
+
 root.render(
   <React.StrictMode>
     <MemoryRouter initialEntries={["/"]}>
       <ClerkProvider 
         publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+        afterSignOutUrl={`${EXTENSION_URL}/index.html`}
+        signInFallbackRedirectUrl={`${EXTENSION_URL}/index.html`}
+        signUpFallbackRedirectUrl={`${EXTENSION_URL}/index.html`}
       >
         <UserProvider>
           <PaywallProvider>
