@@ -1,10 +1,10 @@
 import {useRef, useEffect} from "react";
 import { SignIn as ClerkSignIn } from "@clerk/chrome-extension";
-import { useNavigate } from "react-router";
+import { useNavigation } from "../../context/NavigationContext";
 
 export const SignIn = () => {
   const signInRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const { navigate } = useNavigation();
 
   const handleClick = (e: MouseEvent) => {
     if (signInRef.current?.contains(e.target as Node)) {
@@ -30,6 +30,7 @@ export const SignIn = () => {
             card: "bg-white rounded-lg shadow-md",
           }
         }}
+        fallbackRedirectUrl={chrome.runtime.getURL('index.html')}
       />
     </div>
   );

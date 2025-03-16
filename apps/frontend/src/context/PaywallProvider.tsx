@@ -27,7 +27,6 @@ export const PaywallProvider = ({ children }: { children: ReactNode }) => {
   // Check subscription status on mount and when user changes
   const checkSubscription = async () => {
     if (!user?.externalId) {
-      console.log('user', user)
       setIsSubscribed(false);
       setSubscriptionTier('free');
       return;
@@ -36,7 +35,6 @@ export const PaywallProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Otherwise, verify with the server
       const { isSubscribed: subStatus, tier } = await verifySubscription(user.externalId);
-      console.log('subStatus', subStatus)
       setIsSubscribed(subStatus);
       setSubscriptionTier(tier as SubscriptionTier);
       

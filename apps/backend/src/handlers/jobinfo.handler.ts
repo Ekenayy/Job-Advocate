@@ -77,12 +77,27 @@ Additional domain hints:
           If you are given information about multiple positions at multiple companies, only extract information from the position and company that you have the most information about. Often times, many jobs postings will appear in a sidebar, but are not the job posting that the user has clicked on.
 
           For the job title:
+          - First, identify if the job title has suffixes, prefixes or department/product/team specifications.
           - Extract only the core job title without location, remote status, or technology stack
           - Remove prefixes like "Remote", "Hybrid", "Virtual", etc.
           - Remove suffixes like "(Node.js, AWS)", "| Hybrid", etc.
           - Standardize titles: "Sr." → "Senior", "Jr." → "Junior", "Mgr" → "Manager", etc.
           - Keep the seniority level (Junior, Mid, Senior, Lead, etc.) if present
           - Keep the specialization (Frontend, Backend, Full Stack, etc.) if present
+
+          For potential advocates:
+          - Identify 10 valuable job titles at the company that would be helpful for the candidate to connect with. Follow these guidelines:
+          1.	Include variations of the job title:
+          •	If the job title includes a suffix, prefix, or department/product/team specification, also include the generalized job title.
+          •	Example: If the input is "Product Manager, API", include "Product Manager".
+          2.	Include related and complementary roles:
+          •	Include team members with similar or complementary job functions.
+          3.	Identify the hiring manager’s likely title:
+          •	Example: If the input is "Product Manager, API", include "Director of Product".
+          4.	Include senior decision-makers:
+          •	Include senior roles that could influence the hiring decision.
+          5.	Format the output as an array of standardized job titles:
+          •	Example: ["Engineering Manager", "Senior Software Engineer", "Director of Product"]
 
           For the company domain:
           - Determine the most likely official company domain (e.g., "company.com")
@@ -93,12 +108,6 @@ Additional domain hints:
           - Navigate to the company domain and check if it is a valid company website and if the job posting matches the mission and description of the company website that you navigate to
           - Take your time here. It is critical to get the company domain correct.
 
-          For potential advocates:
-          - Identify 3-5 job titles of people at the company who would be valuable for the candidate to connect with
-          - Include the hiring manager's likely title
-          - Include team members with similar or complementary roles
-          - Include senior roles that might influence hiring decisions
-          - Format as an array of standardized job titles (e.g., ["Engineering Manager", "Senior Software Engineer"])
 
           Return a JSON object with exactly these fields:
           - jobTitle: The standardized core job title

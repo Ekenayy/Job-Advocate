@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useUser } from "../../context/UserProvder";
 import { PropagateLoader } from "react-spinners";
+import  Confirmation  from "../toast/Confirmation"; 
 
 const UpdateResume = () => {
   const { contextResume, setResume, user } = useUser();
   const [updatedResumeFile, setUpdatedResumeFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -20,6 +22,7 @@ const UpdateResume = () => {
       return;
     }
 
+    setShowConfirmation(false);
     setIsLoading(true);
     setError(null);
 
@@ -45,6 +48,7 @@ const UpdateResume = () => {
 
       setResume(resumeResponse);
       setUpdatedResumeFile(null);
+      setShowConfirmation(true);
     } catch (error) {
       console.error('Error uploading resume:', error);
       setError('Failed to upload resume');
@@ -55,21 +59,21 @@ const UpdateResume = () => {
   };
 
   return (
-    <div className="p-6 mx-auto">
+    <div className="py-6 mx-auto">
       <h1 className="text-2xl font-bold mb-6">Update Resume</h1>
       
       {/* Current Resume Section */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-2">Current Resume</h2>
         {contextResume ? (
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="bg-gray-50 py-4 px-2 rounded-lg">
             <p className="text-sm text-gray-600">
               Last updated: {new Date(contextResume.created_at || new Date()).toLocaleDateString()}
             </p>
             {contextResume.raw_text && (
-              <div className="mt-2 text-sm text-gray-700 max-h-32 overflow-y-auto">
+              <div className="mt-2 text-sm text-gray-700 max-h-[30vh] overflow-y-auto">
                 <strong>Preview:</strong>
-                <p className="whitespace-pre-wrap">{contextResume.raw_text.slice(0, 1000)}...</p>
+                <p className="whitespace-pre-wrap">{contextResume.raw_text.slice(0, 2000)}...</p>
               </div>
             )}
           </div>
@@ -116,6 +120,7 @@ const UpdateResume = () => {
           )}
         </div>
       </div>
+      <Confirmation show={showConfirmation} text="Success!" />
     </div>
   );
 };

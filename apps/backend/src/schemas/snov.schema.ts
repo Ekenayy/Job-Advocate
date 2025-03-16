@@ -6,6 +6,7 @@ export const snovEmployeeSchema = Type.Object({
   position: Type.String(),
   source_page: Type.String(),
   email: Type.String(),
+  company: Type.String(),
 });
 
 export const snovSearchQuerySchema = Type.Object({

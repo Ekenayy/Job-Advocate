@@ -60,17 +60,12 @@ const isJobListingPage = () => {
   const currentUrl = window.location.href.toLowerCase();
   const currentDomain = window.location.hostname.toLowerCase().replace("www.", "");
   
-  console.log("Checking if job listing page - Current domain:", currentDomain);
-  console.log("Checking if job listing page - Current URL:", currentUrl);
-  
   // Find the matching domain configuration
   const domainConfig = JOB_LISTING_PATTERNS.find(config => 
     currentDomain.includes(config.domain)
   );
   
   if (domainConfig) {
-    console.log("Found matching domain config for:", domainConfig.domain);
-    
     // First check exclusion patterns - if any match, this is an individual job posting, not a listing page
     if (domainConfig.exclusionPatterns) {
       const isExcluded = domainConfig.exclusionPatterns.some(pattern => 
@@ -78,7 +73,6 @@ const isJobListingPage = () => {
       );
       
       if (isExcluded) {
-        console.log("URL matches exclusion pattern - this is an individual job posting");
         return false;
       }
     }
@@ -89,8 +83,6 @@ const isJobListingPage = () => {
     );
     
     if (matchingPattern) {
-      console.log("URL matches pattern:", matchingPattern);
-      
       // For Glassdoor, do additional content checks
       if (currentDomain.includes("glassdoor.com") && domainConfig.contentPatterns) {
         const pageText = document.body.innerText.toLowerCase();
@@ -101,25 +93,19 @@ const isJobListingPage = () => {
         );
         
         if (hasListingContent) {
-          console.log("Page content indicates a job listing page");
           return true;
         }
         
         // Check for multiple job cards/listings on the page
         const jobCards = document.querySelectorAll('[data-test="job-card"], [class*="jobCard"], [class*="job-card"], [class*="jobListing"]');
         if (jobCards.length > 1) {
-          console.log(`Found ${jobCards.length} job cards on the page`);
           return true;
         }
       } else {
         // For other sites, URL pattern match is sufficient
         return true;
       }
-    } else {
-      console.log("URL does not match any patterns for this domain");
     }
-  } else {
-    console.log("No matching domain configuration found");
   }
   
   return false;
@@ -128,8 +114,6 @@ const isJobListingPage = () => {
 // Function to check if current site is a job site using job site list, button text, and apply button
 const isJobSite = () => {
   const currentUrl = window.location.href.toLowerCase();
-
-  console.log("Checking if job site - Current URL:", currentUrl);
 
   // Check if URL matches known job sites
   const isKnownJobSite = JOB_SITES.some((site) => {
@@ -198,10 +182,8 @@ const extractJobInfo = async () => {
   try {
     // Check if we're on a job listing page rather than a specific job posting
     const isListingPage = isJobListingPage();
-    console.log("Is job listing page result:", isListingPage);
     
     if (isListingPage) {
-      console.log("Detected job listing page, returning early with flag");
       return {
         jobTitle: "",
         domain: currentDomain,
@@ -217,7 +199,6 @@ const extractJobInfo = async () => {
 
     // Extract domain hints from the page
     const domainHints = extractDomainHints();
-    console.log("Domain hints extracted:", domainHints);
 
     // Make sure we're using the absolute backend URL, not a relative one
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -263,7 +244,6 @@ const extractJobInfo = async () => {
 
     return jobInfo;
   } catch (error) {
-    console.error("Error extracting job info:", error);
     return {
       jobTitle: "",
       domain: currentDomain,
@@ -393,15 +373,43 @@ const extractDomainHints = () => {
   return hints;
 };
 
+// Send a message to the background script to indicate that the content script is ready
+chrome.runtime.sendMessage({ action: "CONTENT_SCRIPT_READY", url: window.location.href });
+
 // Listen for messages from the extension
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "GET_JOB_INFO") {
-    extractJobInfo().then(sendResponse);
+    extractJobInfo().then(jobInfo => {
+      // Send the job info back to the extension
+      chrome.runtime.sendMessage({ 
+        action: "JOB_INFO_RESULT", 
+        jobInfo: jobInfo,
+        tabId: sender.tab?.id
+      });
+      
+      // Also send a response to the original request
+      sendResponse(jobInfo);
+    }).catch(error => {
+      chrome.runtime.sendMessage({ 
+        action: "JOB_INFO_ERROR", 
+        error: error.message,
+        tabId: sender.tab?.id
+      });
+      
+      // Send an error response
+      sendResponse({ error: error.message });
+    });
+    
     return true; // Required for async response
   } else if (request.action === "OPEN_SIDE_PANEL") {
     chrome.runtime.sendMessage({ action: "OPEN_SIDE_PANEL" });
     return true; // Add return value for this path
+  } else if (request.action === "PING") {
+    // Simple ping to check if content script is loaded
+    sendResponse({ status: "alive", url: window.location.href });
+    return true;
   }
+  
   return false; // Add default return
 });
 

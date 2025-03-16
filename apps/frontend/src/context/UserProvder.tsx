@@ -22,6 +22,7 @@ const defaultJobInfo: JobInfo = {
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [contextResume, setContextResume] = useState<Resume | null>(null);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
+  const [hasSeenThirdStep, setHasSeenThirdStep] = useState(false);
   const [lastAdvocates, setLastAdvocates] = useState<Employee[]>([]);
   const [userEmails, setUserEmails] = useState<Email[]>([]);
   const [jobInfo, setJobInfoState] = useState<JobInfo>(defaultJobInfo);
@@ -32,14 +33,21 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
    * Checks if a user is fully onboarded by verifying they have both:
    * 1. A resume
    * 2. A valid Gmail token
+   * 3. Has seen the third step of onboarding
    * @returns Promise that resolves to true if user is fully onboarded
    */
   const checkUserOnboardingStatus = async (resume: Resume | null): Promise<boolean> => {
     // First check if we have a stored onboarding status
     const storedOnboardingStatus = await getFromStorage<boolean>('isOnboardingComplete');
+    const storedHasSeenThirdStep = await getFromStorage<boolean>('hasSeenThirdStep');
+    
+    // Update the hasSeenThirdStep state
+    if (storedHasSeenThirdStep === true) {
+      setHasSeenThirdStep(true);
+    }
     
     // If we have a stored status of true, check if the conditions are still valid
-    if (storedOnboardingStatus) {
+    if (storedOnboardingStatus === true) {
       // Verify resume exists
       const hasResume = !!resume;
       
@@ -47,8 +55,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const gmailService = GmailService.getInstance();
       const hasValidGmailToken = await gmailService.isAuthenticated();
       
-      // User is onboarded if both conditions are met
-      const isFullyOnboarded = hasResume && hasValidGmailToken;
+      // User is onboarded if all conditions are met
+      const isFullyOnboarded = hasResume && hasValidGmailToken && storedHasSeenThirdStep === true;
       
       // If status has changed, update storage
       if (!isFullyOnboarded) {
@@ -63,8 +71,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const gmailService = GmailService.getInstance();
       const hasValidGmailToken = await gmailService.isAuthenticated();
       
-      if (hasValidGmailToken) {
-        // If both conditions are met, update storage and return true
+      if (hasValidGmailToken && storedHasSeenThirdStep === true) {
+        // If all conditions are met, update storage and return true
         await setToStorage('isOnboardingComplete', true);
         return true;
       }
@@ -79,8 +87,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const userEmails = await getFromStorage<Email[]>('userEmails');
     const previousSignInState = await getFromStorage<boolean>('previousSignInState');
     const storedJobInfo = await getFromStorage<JobInfo>('jobInfo');
+    const storedHasSeenThirdStep = await getFromStorage<boolean>('hasSeenThirdStep');
     
     if (resume) setContextResume(resume);
+    if (storedHasSeenThirdStep === true) setHasSeenThirdStep(true);
 
     if (!resume && user?.externalId) {
       const fetchedResume = await getResume(user.externalId);
@@ -100,7 +110,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     
     if (lastAdvocates) setLastAdvocates(lastAdvocates);
     if (userEmails) setUserEmails(userEmails);
-    if (previousSignInState) setPreviousSignInState(previousSignInState);
+    if (previousSignInState !== null) setPreviousSignInState(previousSignInState);
     if (storedJobInfo) setJobInfoState(storedJobInfo);
 
     if (!userEmails && user?.externalId) {
@@ -116,6 +126,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   // Update the completeOnboarding function to verify conditions are met
   const completeOnboarding = async () => {
+    // Mark that the user has seen the third step
+    setHasSeenThirdStep(true);
+    await setToStorage('hasSeenThirdStep', true);
+    
     // Only mark as complete if we have a resume and valid Gmail token
     const gmailService = GmailService.getInstance();
     const hasValidGmailToken = await gmailService.isAuthenticated();
@@ -156,17 +170,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   // Clear user data from storage when user signs out
   const clearUserData = async () => {
-    console.log('User signed out, clearing data from storage');
     await removeFromStorage('resume');
     await removeFromStorage('lastAdvocates');
     await removeFromStorage('userEmails');
     await removeFromStorage('jobInfo');
+    await removeFromStorage('hasSeenThirdStep');
     
     // Reset state
     setContextResume(null);
     setLastAdvocates([]);
     setUserEmails([]);
     setJobInfoState(defaultJobInfo);
+    setHasSeenThirdStep(false);
   };
 
   useEffect(() => {
@@ -177,12 +192,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Only run this effect after Clerk has loaded
     if (isLoaded) {
-      console.log('isLoaded', isLoaded);
-      console.log('previousSignInState', previousSignInState);
-      console.log('isSignedIn', isSignedIn);
       // If previously signed in and now signed out, clear data
       if (previousSignInState === true && !isSignedIn) {
-        console.log('clearing user data...');
         clearUserData();
       }
       
@@ -201,16 +212,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const gmailService = GmailService.getInstance();
     const hasValidGmailToken = await gmailService.isAuthenticated();
     
-    // User is onboarded if both conditions are met
-    const isOnboarded = hasResume && hasValidGmailToken;
+    // Check if user has seen the third step
+    const storedHasSeenThirdStep = await getFromStorage<boolean>('hasSeenThirdStep');
+    if (storedHasSeenThirdStep === true) {
+      setHasSeenThirdStep(true);
+    }
     
-    // Log the status for debugging
-    console.log('Onboarding check:', { 
-      hasResume, 
-      hasValidGmailToken, 
-      isOnboarded,
-      currentOnboardingState: isOnboardingComplete
-    });
+    // User is onboarded if all conditions are met
+    const isOnboarded = hasResume && hasValidGmailToken && (hasSeenThirdStep || storedHasSeenThirdStep === true);
     
     // Update state and storage if needed
     if (isOnboardingComplete !== isOnboarded) {
@@ -225,6 +234,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     <UserContext.Provider value={{ 
       contextResume, 
       isOnboardingComplete,
+      hasSeenThirdStep,
+      setHasSeenThirdStep: async (value: boolean) => {
+        setHasSeenThirdStep(value);
+        await setToStorage('hasSeenThirdStep', value);
+      },
       setResume,
       completeOnboarding,
       lastAdvocates,

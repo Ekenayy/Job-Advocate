@@ -21,6 +21,8 @@ export interface JobInfo {
 export interface UserContextType {
   contextResume: Resume | null;
   isOnboardingComplete: boolean;
+  hasSeenThirdStep: boolean;
+  setHasSeenThirdStep: (value: boolean) => Promise<void>;
   lastAdvocates: Employee[];
   userEmails: Email[];
   setResume: (resume: Resume) => Promise<void>;

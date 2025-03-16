@@ -73,8 +73,6 @@ const SecondStep: React.FC<SecondStepProps> = ({
     ? "Reconnect your Gmail account" 
     : "Welcome, let's setup your account";
 
-    console.log('hasExistingResume', hasExistingResume)
-
   return (
     <div className="flex flex-col gap-6 p-4 w-full max-w-sm">
       <div className="flex items-center gap-3">
@@ -125,7 +123,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
       {!hasExistingResume && (
         <div className="flex flex-col gap-2">
           <label className="text-sm text-gray-600">
-            Upload your resume to help AI generate more custom emails
+            Upload your resume to help AI generate more custom emails. We use your resume to personalize the emails we send to advocates. Your resume will never be shared with anyone. 
           </label>
           <label className="cursor-pointer w-full p-2 border rounded-md text-center bg-white hover:bg-gray-50">
             <input

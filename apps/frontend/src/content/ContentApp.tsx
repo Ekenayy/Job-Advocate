@@ -48,6 +48,21 @@ const ContentApp: React.FC = () => {
     }
   }, [lastAdvocates]);
 
+  // Helper function to get the correct content script path
+  const getContentScriptPath = () => {
+    // In production, we need to find the content script in the assets directory
+    // This will match any file that starts with "content.tsx" in the assets directory
+    return { 
+      func: () => {
+        // This function runs in the context of the web page
+        // It will notify the extension that it needs to inject the content script
+        chrome.runtime.sendMessage({ 
+          action: "INJECT_CONTENT_SCRIPT" 
+        });
+      }
+    };
+  };
+
   const fetchJobInfoAndEmployees = async () => {
     setIsLoading(true);
     setError(null); // Clear previous errors
@@ -61,13 +76,34 @@ const ContentApp: React.FC = () => {
       if (!tab?.id) throw new Error('No active tab found');
 
       // Get job info from content script
-      console.log('Sending GET_JOB_INFO message to tab:', tab.id);
-      const jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
-      console.log('Job info received:', jobInfoResponse);
+      let jobInfoResponse;
+       try {
+         jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+       } catch (msgError) {
+         console.error('Error sending message to content script:', msgError);
+         // If we can't communicate with the content script, try to inject it
+         try {
+           const contentScriptPath = getContentScriptPath();
+           
+           // Use the function approach to notify the background script
+           await chrome.scripting.executeScript({
+             target: { tabId: tab.id },
+             func: contentScriptPath.func
+           });
+           
+           // Wait a moment for the background script to handle the injection
+           await new Promise(resolve => setTimeout(resolve, 1000));
+           
+           // Try again after injecting the content script
+           jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+         } catch (injectionError) {
+           console.error('Error injecting content script:', injectionError);
+           throw new Error('Unable to communicate with the page. Please refresh the page and try again.');
+         }
+       }
 
       // Check if we're on a job listing page - do this check FIRST before any other processing
       if (jobInfoResponse.isJobListingPage) {
-        console.log('Job listing page detected, showing warning UI');
         setIsJobListingPage(true);
         setIsLoading(false); // Stop loading immediately
         return; // Exit early without making backend calls
@@ -96,14 +132,10 @@ const ContentApp: React.FC = () => {
 
     } catch (error) {
       console.error('Error in fetchJobInfoAndEmployees:', error);
-      console.log('Error type:', typeof error);
-      console.log('Is ErrorWithDetails:', error instanceof ErrorWithDetails);
-      
+
       if (error instanceof ErrorWithDetails) {
-        console.log('Error code:', error.code);
         setErrorCode(error.code);
 
-        console.log("jobInfo from context:", jobInfo);
         
         if (error.code === "NO_VALID_EMPLOYEES" && jobInfo) {
           console.log('Showing domain input dialog for NO_VALID_EMPLOYEES error');
@@ -136,7 +168,6 @@ const ContentApp: React.FC = () => {
   // New function to search employees with a specific domain
   const searchEmployees = async (domain: string, jobTitle: string, potentialAdvocates: string[]) => {
     try {
-      console.log('Fetching employees from backend with domain:', domain);
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/search`, {
         method: 'POST',
         headers: {
@@ -151,9 +182,7 @@ const ContentApp: React.FC = () => {
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.log('Error response from backend:', errorData);
-        console.log('Error code from backend:', errorData.code);
-        
+
         // Create an ErrorWithDetails object with the error data
         const errorWithDetails = new ErrorWithDetails(
           errorData.error || 'Failed to fetch employees',
@@ -242,7 +271,6 @@ const ContentApp: React.FC = () => {
       }
   
       const data = await response.json();
-      console.log('response data:', data);
       setAIEmail(data);
     } catch (error) {
       console.error('Error generating email:', error);
@@ -257,6 +285,7 @@ const ContentApp: React.FC = () => {
     if (selectedAdvocate) {
       setSelectedAdvocate(null);
     } else {
+      setShowDomainInput(false);
       setShowConfirmation(true);
     }
   };
@@ -287,7 +316,6 @@ const ContentApp: React.FC = () => {
         setEmailedAdvocates([...emailedAdvocates, selectedAdvocate]);
         const databaseEmail = await createEmail(user?.externalId || "", selectedAdvocate.email, subject, content);
         setContextUserEmails([...userEmails, databaseEmail]);
-        console.log("Email sent successfully");
       } else {
         setError("There was an error sending the email. Please try again.");
       }
@@ -308,8 +336,6 @@ const ContentApp: React.FC = () => {
     setShowConfirmation(true);
     setError(null);
   }
-
-  console.log("showDomainInput", showDomainInput);
 
 
   if (showConfirmation && !isJobListingPage && !showDomainInput) {
@@ -349,7 +375,7 @@ const ContentApp: React.FC = () => {
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Job Advocate</h1>
-          <button onClick={() => setShowConfirmation(true)} className="text-gray-400 hover:text-gray-600">
+          <button onClick={() => setShowConfirmation(true)} className="cursor-pointer text-gray-400 hover:text-gray-600">
             <FaSearchengin className="w-5 h-5" />
           </button>
         </div>
@@ -364,6 +390,7 @@ const ContentApp: React.FC = () => {
         
         <DomainInputDialog
           companyName={jobInfo.companyName}
+          guessedDomain={jobInfo.domain || ""}
           onSubmit={handleDomainSubmit}
           onCancel={handleDomainInputCancel}
           isLoading={isLoading}
@@ -378,7 +405,7 @@ const ContentApp: React.FC = () => {
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Job Advocate</h1>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={handleClose} className="text-gray-400 cursor-pointer transition-colors duration-300 hover:text-blue-600">
             <FaSearchengin className="w-5 h-5" />
           </button>
         </div>
@@ -455,7 +482,7 @@ const ContentApp: React.FC = () => {
       <div className="flex flex-col gap-14">
       { advocates.length > 0 ? advocates.map((employee) => {
           return (
-            <React.Fragment key={employee.id}>
+            <div key={employee.id}>
               {emailedAdvocates.some(advocate => advocate.email === employee.email) ? (
                 <div className="bg-green-50 p-4 rounded-lg">
                   <p className="text-green-600 font-medium">
@@ -468,22 +495,17 @@ const ContentApp: React.FC = () => {
               ) : (
                 (selectedAdvocate === null || selectedAdvocate === employee) && (
                   <Advocate
-                    name={employee.first_name + " " + employee.last_name}
-                    title={employee.position}
-                    company={jobInfo.companyName}
-                    initials={employee.first_name.charAt(0) + employee.last_name.charAt(0)}
-                    email={employee.email}
+                    employee={employee}
                     isSelected={selectedAdvocate === employee}
                     isLoading={isLoading}
-                    linkedin={employee.source_page}
+                    isLoadingEmail={isLoadingEmail}
                     onCompose={() => handleCompose(employee)}
                     onSendEmail={handleSendEmail}
                     AIEmail={AIEmail}
-                    isLoadingEmail={isLoadingEmail}
                   />
                 )
               )}
-            </React.Fragment>
+            </div>
           );
         }) : (
           <div className="text-center text-gray-500">
