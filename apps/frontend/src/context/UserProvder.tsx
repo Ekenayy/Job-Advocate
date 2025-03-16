@@ -221,15 +221,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     // User is onboarded if all conditions are met
     const isOnboarded = hasResume && hasValidGmailToken && (hasSeenThirdStep || storedHasSeenThirdStep === true);
     
-    // Log the status for debugging
-    console.log('Onboarding check:', { 
-      hasResume, 
-      hasValidGmailToken,
-      hasSeenThirdStep: hasSeenThirdStep || storedHasSeenThirdStep === true,
-      isOnboarded,
-      currentOnboardingState: isOnboardingComplete
-    });
-    
     // Update state and storage if needed
     if (isOnboardingComplete !== isOnboarded) {
       setIsOnboardingComplete(isOnboarded);

@@ -83,7 +83,6 @@ export function Paywall({
 
   // Add a function to check subscription when dialog closes
   const handleDialogClose = () => {
-    console.log('Dialog closed, checking subscription status');
     checkSubscription();
   };
 
