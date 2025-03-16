@@ -4,8 +4,8 @@ import App from './App.tsx'
 import './index.css'
 import { UserProvider } from './context/UserProvder.tsx'
 import { ClerkProvider } from '@clerk/chrome-extension'
-import { MemoryRouter } from 'react-router'
 import { PaywallProvider } from './context/PaywallProvider.tsx'
+import { NavigationProvider } from './context/NavigationContext.tsx'
 
 if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key")
@@ -17,7 +17,7 @@ const EXTENSION_URL = chrome.runtime.getURL('.')
 
 root.render(
   <React.StrictMode>
-    <MemoryRouter initialEntries={["/"]}>
+    <NavigationProvider initialRoute="/">
       <ClerkProvider 
         publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
         afterSignOutUrl={`${EXTENSION_URL}/index.html`}
@@ -26,10 +26,10 @@ root.render(
       >
         <UserProvider>
           <PaywallProvider>
-              <App />
+            <App />
           </PaywallProvider>
-          </UserProvider>
+        </UserProvider>
       </ClerkProvider>
-    </MemoryRouter>
+    </NavigationProvider>
   </React.StrictMode>
 )

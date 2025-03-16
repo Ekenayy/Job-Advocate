@@ -1,11 +1,10 @@
-import { Route } from "react-router";
-import ContentApp from "../content/ContentApp";
-import { Onboarding } from "../components/onboarding/Onboarding";
-import { useUser as useContextUser } from "../context/UserProvder";
 import { useEffect, useState } from "react";
+import { useUser as useContextUser } from "../context/UserProvder";
 import { GmailService } from "../services/gmailService";
+import { Onboarding } from "./onboarding/Onboarding";
+import ContentApp from "../content/ContentApp";
 
-function ProtectedContent() {
+export const ProtectedContent = () => {
   const { isOnboardingComplete, completeOnboarding, checkIfUserIsOnboarded } = useContextUser();
   const [isChecking, setIsChecking] = useState(true);
   const [_hasGmailToken, setHasGmailToken] = useState(false);
@@ -51,9 +50,4 @@ function ProtectedContent() {
       )}
     </main>
   );
-}
-
-export const protectedRoutes = [
-  <Route key="root" path="/" element={<ProtectedContent />} />,
-  // Add other protected routes here
-]; 
+}; 
