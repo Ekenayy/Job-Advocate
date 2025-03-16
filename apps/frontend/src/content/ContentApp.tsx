@@ -398,7 +398,7 @@ const ContentApp: React.FC = () => {
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-semibold">Job Advocate</h1>
-          <button onClick={() => setShowConfirmation(true)} className="text-gray-400 hover:text-gray-600">
+          <button onClick={() => setShowConfirmation(true)} className="cursor-pointer text-gray-400 hover:text-gray-600">
             <FaSearchengin className="w-5 h-5" />
           </button>
         </div>

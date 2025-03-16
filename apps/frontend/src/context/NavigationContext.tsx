@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 // Define the routes we have in our application
-export type Route = '/' | '/sign-in' | '/sign-up';
+export type Route = '/' | '/sign-in' | '/sign-up' | '/update-resume';
 
 interface NavigationContextType {
   currentRoute: Route;

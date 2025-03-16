@@ -12,14 +12,18 @@ function App() {
   const { currentRoute, navigate } = useNavigation();
   const { isSignedIn, isLoaded } = useAuth();
   const { user } = useUser();
-
-  console.log(user);
+  
   // Reset navigation when auth state changes
   useEffect(() => {
     if (isLoaded) {
       // If user is signed in, make sure we're not on an auth page
       if (isSignedIn && (currentRoute === '/sign-in' || currentRoute === '/sign-up')) {
         navigate('/');
+      }
+      
+      // If user is not signed in, redirect away from protected routes
+      if (!isSignedIn && (currentRoute === '/update-resume')) {
+        navigate('/sign-in');
       }
     }
   }, [isSignedIn, isLoaded, currentRoute, navigate]);

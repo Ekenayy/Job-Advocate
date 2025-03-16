@@ -30,7 +30,7 @@ export const SignUp = () => {
             card: "bg-white rounded-lg shadow-md",
           }
         }}
-        redirectUrl={chrome.runtime.getURL('index.html')}
+        fallbackRedirectUrl={chrome.runtime.getURL('index.html')}
         signInUrl={chrome.runtime.getURL('index.html')}
       />
     </div>

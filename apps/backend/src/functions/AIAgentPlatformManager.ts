@@ -27,6 +27,7 @@ const emailAgent = async (
     openAIApiKey: API_KEY_OPENAI,
   });
 
+
   const template = `
   You are a helpful assistant tasked with creating an effective outreach cold email to a functional employee of a company where the user wants to apply for a job. This email should follow Steve Dalton's 6-Point Email (6PE) structure, which is designed to maximize the chances of getting a response. Your goal is to craft a personalized, concise, and engaging email that will encourage the recipient to respond positively.
   
@@ -102,6 +103,8 @@ const emailAgent = async (
 
     const contentString = response.content.toString().replace(/```json\n|\n```/g, '');
     const emailData = JSON.parse(contentString);
+
+    console.log('myQualifications', safeQualifications);
   
     return {
       subject: emailData.subject,
