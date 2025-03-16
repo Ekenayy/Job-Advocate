@@ -177,7 +177,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               chrome.tabs.sendMessage(
                 tabId,
                 { action: "GET_JOB_INFO" },
-                (response) => {
+                () => {
                   if (chrome.runtime.lastError) {
                     console.error("Error getting job info:", chrome.runtime.lastError.message);
                     sendResponse({ 
@@ -196,7 +196,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.tabs.sendMessage(
           tabId,
           { action: "GET_JOB_INFO" },
-          (response) => {
+          () => {
             if (chrome.runtime.lastError) {
               console.error("Error getting job info:", chrome.runtime.lastError.message);
               

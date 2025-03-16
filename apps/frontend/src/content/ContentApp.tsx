@@ -464,7 +464,7 @@ const ContentApp: React.FC = () => {
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Advocates</h1>
-        <button onClick={handleClose} className="text-gray-400 hover:text-gray-600">
+        <button onClick={handleClose} className="text-gray-400 cursor-pointer hover:text-blue-600">
           {selectedAdvocate ? <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg> : <FaSearchengin className="w-5 h-5" />}
