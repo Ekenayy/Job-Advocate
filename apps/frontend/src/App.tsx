@@ -6,6 +6,7 @@ import { SignIn } from "./components/auth/SignIn";
 import { SignUp } from "./components/auth/SignUp";
 import { ProtectedContent } from "./components/ProtectedContent";
 import { useEffect } from "react";
+import { RingLoader } from "react-spinners";
 
 function App() {
   const { currentRoute, navigate } = useNavigation();
@@ -29,7 +30,7 @@ function App() {
       <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center">
-          <p>Loading...</p>
+          <RingLoader color="#155dfc" size={100} />
         </div>
       </div>
     );

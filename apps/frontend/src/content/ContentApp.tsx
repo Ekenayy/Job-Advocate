@@ -305,6 +305,7 @@ const ContentApp: React.FC = () => {
     if (selectedAdvocate) {
       setSelectedAdvocate(null);
     } else {
+      setShowDomainInput(false);
       setShowConfirmation(true);
     }
   };
