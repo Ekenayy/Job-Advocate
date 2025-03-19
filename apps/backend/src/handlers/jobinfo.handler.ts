@@ -86,18 +86,20 @@ Additional domain hints:
           - Keep the specialization (Frontend, Backend, Full Stack, etc.) if present
 
           For potential advocates:
-          - Identify 10 valuable job titles at the company that would be helpful for the candidate to connect with. Follow these guidelines:
+          - Identify 12 valuable job titles at the company that would be helpful for the candidate to connect with. Follow these guidelines:
           1.	Include variations of the job title:
           •	If the job title includes a suffix, prefix, or department/product/team specification, also include the generalized job title.
           •	Example: If the input is "Product Manager, API", include "Product Manager".
-          2.	Include related and complementary roles:
-          •	Include team members with similar or complementary job functions.
+          * Include the the likely department name of the job title
+          * Example: If the input is "Product Manager, API", include "Product". If the input is "Software Engineer, Payments", include "Engineering".
+          2.	Include related roles:
+          •	Include team members with similar job functions.
           3.	Identify the hiring manager’s likely title:
           •	Example: If the input is "Product Manager, API", include "Director of Product".
           4.	Include senior decision-makers:
-          •	Include senior roles that could influence the hiring decision.
+          •	Include senior roles from the same department that could influence the hiring decision.
           5.	Format the output as an array of standardized job titles:
-          •	Example: ["Engineering Manager", "Senior Software Engineer", "Director of Product"]
+          •	Example: ["Engineering Manager", "Senior Software Engineer", "Software Engineer"]
 
           For the company domain:
           - Determine the most likely official company domain (e.g., "company.com")
