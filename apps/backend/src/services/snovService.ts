@@ -185,20 +185,29 @@ export const searchDomainEmployees = async (
       }
     };
 
-    // First, sort prospects to prioritize non-executives
-    // This ensures we process non-executive prospects first
-    const sortedProspects = [...prospectsResult.data].sort((a, b) => {
-      const aIsExecutive = isExecutivePosition(a.position);
-      const bIsExecutive = isExecutivePosition(b.position);
-      
-      if (aIsExecutive && !bIsExecutive) return 1;  // Non-executives first
-      if (!aIsExecutive && bIsExecutive) return -1;
-      return 0;
-    });
+    // Sort prospects to prioritize a mix of executives and non-executives
+    // We want to include the first two executives and prioritize non-executives for the rest
+    const executiveProspects = prospectsResult.data.filter((p: any) => isExecutivePosition(p.position));
+    const nonExecutiveProspects = prospectsResult.data.filter((p: any) => !isExecutivePosition(p.position));
+    
+    // Take the first two executives (if they exist) and add them to the front of our processing queue
+    const priorityExecutives = executiveProspects.slice(0, 2);
+    // Add the remaining executives at the end
+    const deprioritizedExecutives = executiveProspects.slice(2);
+    
+    // Combine them in the optimal processing order:
+    // 1. First 2 executives (high priority)
+    // 2. All non-executives (medium priority)
+    // 3. Remaining executives (low priority)
+    const sortedProspects = [
+      ...priorityExecutives,
+      ...nonExecutiveProspects,
+      ...deprioritizedExecutives
+    ];
 
-    console.log(`Sorted prospects: ${sortedProspects.length} total, prioritizing non-executives`);
+    console.log(`Sorted prospects: ${sortedProspects.length} total (${priorityExecutives.length} priority executives, ${nonExecutiveProspects.length} non-executives, ${deprioritizedExecutives.length} deprioritized executives)`);
 
-    // Process all prospects in parallel but keep track of executive count
+    // Process all prospects in parallel
     const employeePromises = sortedProspects.map(getProspectEmails);
     
     // Use a more efficient approach that stops when we have enough valid employees
@@ -234,7 +243,7 @@ export const searchDomainEmployees = async (
     employees.push(...nonExecutiveEmployees);
     employees.push(...executiveEmployees.slice(0, maxExecutives));
     
-    console.log(`Final employee breakdown: ${employees.length} total, ${nonExecutiveEmployees.length} non-executives, ${Math.min(executiveEmployees.length, maxExecutives)} executives`);
+    console.log(`Final employee breakdown: ${employees.length} total, ${nonExecutiveEmployees.length} non-executives, ${Math.min(executiveEmployees.length, maxExecutives)} executives (prioritized first ${maxExecutives} executives)`);
     
     if (employees.length === 0) {
       console.error('No valid employees found with all required fields');
