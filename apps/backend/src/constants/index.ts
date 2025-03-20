@@ -6,6 +6,7 @@ import {
   SNOV_CLIENT_ID,
   SNOV_CLIENT_SECRET,
   ANTHROPIC_API_KEY,
+  GEMINI_API_KEY,
 } from "./environmentVariables";
 
 // Import OpenAI mmodels later
@@ -18,4 +19,5 @@ export {
   SNOV_CLIENT_ID,
   SNOV_CLIENT_SECRET,
   ANTHROPIC_API_KEY,
+  GEMINI_API_KEY,
 };
