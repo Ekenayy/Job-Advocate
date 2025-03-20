@@ -6,7 +6,7 @@ export async function swaggerSetup(fastify: FastifyInstance) {
   await fastify.register(fastifySwagger, {
     swagger: {
       info: {
-        title: 'Job Advocate API Docs',
+        title: 'InReach API Docs',
         description: 'API documentation for my Fastify project',
         version: '1.0.0',
       },
