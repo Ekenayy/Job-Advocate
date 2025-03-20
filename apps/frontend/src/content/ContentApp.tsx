@@ -155,7 +155,7 @@ const ContentApp: React.FC = () => {
         console.log('Handling generic error');
         setError(new ErrorWithDetails(
           error instanceof Error ? error.message : 'An error occurred',
-          'We encountered an unexpected error',
+          'We encountered an unexpected error. Try the search again or make sure you are on a job posting page.',
           ['Try refreshing the page', 'Make sure you\'re on a job posting page'],
           'UNKNOWN_ERROR'
         ));
