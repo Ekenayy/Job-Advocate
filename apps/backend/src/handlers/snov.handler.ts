@@ -73,6 +73,14 @@ export const searchEmployeesHandler = async (
           ],
           code: 'NO_VALID_EMPLOYEES'
         });
+      } else if (snovError.message?.includes('validation error')) {
+        console.log('Validation error with Snov.io:', snovError.message);
+        return reply.status(400).send({
+          error: 'API validation error',
+          details: 'The search parameters were rejected by our employee search service',
+          message: snovError.message,
+          code: 'VALIDATION_ERROR'
+        });
       }
       
       // Re-throw for general error handling
