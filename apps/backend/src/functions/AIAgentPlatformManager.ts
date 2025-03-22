@@ -29,9 +29,9 @@ const emailAgent = async (
 
 
   const template = `
-  You are a helpful assistant tasked with creating an effective outreach cold email to a functional employee of a company where the user wants to apply for a job. This email should follow Steve Dalton's 6-Point Email (6PE) structure, which is designed to maximize the chances of getting a response. Your goal is to craft a personalized, concise, and engaging email that will encourage the recipient to respond positively.
+  You are tasked with creating an effective outreach cold email to a functional employee of a company where the user wants to apply for a job. This email should follow Steve Dalton's 6-Point Email (6PE) structure, which is designed to maximize the chances of getting a response. Your goal is to craft a personalized, concise, and engaging email that will encourage the recipient to respond positively.
   
-  The 6-Point Email (6PE) structure consists of the following elements:
+  #The 6-Point Email (6PE) structure consists of the following elements:
 
   1. Personalized greeting
   2. Shared interest or connection
@@ -40,7 +40,7 @@ const emailAgent = async (
   5. Request
   6. Closing
 
-  Guidelines for each point:
+  #Guidelines for each point:
 
   1. Personalized greeting: Use the recipient's name if available.
   2. Shared interest or connection: Mention something you have in common or a connection you've identified.
@@ -49,22 +49,67 @@ const emailAgent = async (
   5. Request: Ask for a brief informational interview or conversation about their experience at the company.
   6. Closing: Thank them for their time and express your eagerness to hear back.
 
-  Tone and style:
+  #Tone and style:
 
   - Keep the email concise (75 words or less)
   - Be professional yet friendly
   - Show enthusiasm without being overly eager
   - Avoid generic statements; be specific and personal
   - Address the email to {advocateName}
-  - If available, use the {advocateName} in the subject line of the email
   - If available, sign off with {userName} in the body of the email
-  - Mention educational background if it's relevant to the role or company
-  - Use my most relevant skills that match the job requirements
-  - Reference most recent and relevant experiences
+  - Keep paragraphs short (2-3 sentences max)
+  - Remember to make the email feel personal and authentic. Avoid using clichés or overly formal language. The goal is to create a genuine connection and spark the recipient's interest in responding.
 
-  Remember to make the email feel personal and authentic. Avoid using clichés or overly formal language. The goal is to create a genuine connection and spark the recipient's interest in responding.
+  
+  #Subject Line Requirements:
 
-  Now, create the email based on these instructions and the provided input variables.
+  - Length: The subject line must be strictly six words or less
+  - Content: Do not include any greetings (e.g., "Hi," "Hello") or generic phrases like "connecting," "connecting with," or any derivative thereof
+  - Style: Use clear, topic-specific language that focuses directly on the topic
+  - Variables: If {advocateName} is available, do not automatically prepend it with phrases that include "connecting"
+  
+  #Here are some examples of effective cold emails:
+
+  ## Example 1
+  Subject: Finance at Disney
+  Body: Hi Lily, 
+
+  I'm Joe, I'm currently a junior in the BYU finance program. Could I chat with you for a few minutes about your experience in corporate finance at The Walt Disney Company? 
+
+  I want to learn more about corporate finance in the theme parks and resorts space, so your insights would be greatly appreciated. 
+
+  Thanks, 
+  Joe
+
+  ## Example 2
+  Subject: Your procurement experience at Janus Henderson
+  Body: 
+  Hi Sebastian,
+
+  I'm a fellow member of the Supply Chain Today LinkedIn Group. Would you have a few minutes to chat about your procurement
+  experience at Janus Henderson Investments?
+
+  Your insights would be greatly appreciated as I'm in the process of deciding whether to apply for your Procurement Analyst role.
+
+  Best regards,
+  Jordan
+
+  ## Example 3
+  Subject: Impressed by Tesla's battery innovation - quick chat, Michael?
+  Body: 
+
+  Hi Michael,
+
+  I share your passion for sustainable energy and was blown away by Tesla's recent 23% battery efficiency breakthrough.
+
+  My 4 years at LG Energy Solution gave me hands-on experience with advanced lithium-ion designs that improved energy density by 18%.
+
+  Could I get your insights on Tesla's engineering culture in a brief call?
+
+  Appreciate your time,
+  Jamie
+
+  Use the following input variables to personalize the email:
 
   Company Background: {background}
   Person Background: {person}
