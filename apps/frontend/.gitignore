@@ -47,3 +47,7 @@ pnpm-lock.yaml
 *.sw?
 .DS_Store
 dist.zip
+
+#chrome extension files
+dist.crx
+dist.pem

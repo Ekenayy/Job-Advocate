@@ -25,7 +25,7 @@ fastify.get('/api/health', async (request, reply) => {
 });
 
 fastify.get('/', async (request, reply) => {
-  return { message: 'Hello, there from the new job advocate app!' };
+  return { message: 'Hello, there from InReach app!' };
 });  
 
 const start = async () => {

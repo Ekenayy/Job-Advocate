@@ -155,7 +155,7 @@ const ContentApp: React.FC = () => {
         console.log('Handling generic error');
         setError(new ErrorWithDetails(
           error instanceof Error ? error.message : 'An error occurred',
-          'We encountered an unexpected error',
+          'We encountered an unexpected error. Try the search again or make sure you are on a job posting page.',
           ['Try refreshing the page', 'Make sure you\'re on a job posting page'],
           'UNKNOWN_ERROR'
         ));
@@ -374,7 +374,7 @@ const ContentApp: React.FC = () => {
     return (
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold">Job Advocate</h1>
+          <h1 className="text-xl font-semibold">InReach</h1>
           <button onClick={() => setShowConfirmation(true)} className="cursor-pointer text-gray-400 hover:text-gray-600">
             <FaSearchengin className="w-5 h-5" />
           </button>
@@ -404,7 +404,7 @@ const ContentApp: React.FC = () => {
     return (
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold">Job Advocate</h1>
+          <h1 className="text-xl font-semibold">InReach</h1>
           <button onClick={handleClose} className="text-gray-400 cursor-pointer transition-colors duration-300 hover:text-blue-600">
             <FaSearchengin className="w-5 h-5" />
           </button>
@@ -421,7 +421,7 @@ const ContentApp: React.FC = () => {
           </div>
           
           <p className="text-amber-700 mb-4">
-            Job Advocate works best with individual job postings, not search results or job listing pages.
+            InReach works best with individual job postings, not search results or job listing pages.
           </p>
           
           <div className="bg-white rounded-lg p-4 border border-amber-200 mb-4">

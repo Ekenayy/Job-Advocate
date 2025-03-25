@@ -31,7 +31,7 @@ export const Header = () => {
     <header className="flex justify-between items-center p-4 bg-white shadow-sm">
       <button onClick={() => navigate('/')} className="flex items-center cursor-pointer transition-colors duration-300 hover:text-blue-600">
         {/* Add your logo or app name here */}
-        <h1 className="text-xl font-bold">Job Advocate</h1>
+        <h1 className="text-xl font-bold">InReach</h1>
       </button>
       
       <div>

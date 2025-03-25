@@ -38,6 +38,7 @@ yarn-error.log*
 
 # Chrome Extension
 dist.zip
+*.zip
 
 
 # Build scripts
