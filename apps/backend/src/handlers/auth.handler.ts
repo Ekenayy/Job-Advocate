@@ -30,7 +30,11 @@ export const webhookHandler = async (request: FastifyRequest, reply: FastifyRepl
     const userData = data as { id: string };
     
     const updatedUser = await clerkClient.users.updateUser(id, {
-      externalId: userData.id
+      externalId: userData.id,
+      publicMetadata: {
+        subscribed: false,
+        tier: 'free',
+      },
     })
 
     if (!updatedUser) {
