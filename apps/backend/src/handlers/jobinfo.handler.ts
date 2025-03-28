@@ -18,7 +18,7 @@ interface JobInfoRequest {
       socialProfiles: string[];
       hostingPlatform: string;
     };
-    user_id: string;
+    user_id?: string;
   };
 }
 
@@ -146,16 +146,18 @@ Additional domain hints:
       try {
         const parsedJson = JSON.parse(responseText);
         console.log("Successfully parsed JSON directly:", parsedJson);
-        postHogClient.capture({
-          distinctId: user_id,
-          event: 'jobinfo_extracted',
+        if (user_id) {
+          postHogClient.capture({
+            distinctId: user_id,
+            event: 'jobinfo_extracted',
           properties: {
             jobinfo: parsedJson,
             currentDomain: currentDomain,
             pageUrl: pageUrl,
           }
-        })
-        postHogClient.flush();
+          })
+          postHogClient.flush();
+        }
         return reply.send(parsedJson);
       } catch (directParseError) {
         // If direct parsing fails, try to extract JSON from the text
@@ -165,16 +167,18 @@ Additional domain hints:
           console.log("Extracted JSON string:", jsonStr);
           const parsedJson = JSON.parse(jsonStr);
           console.log("Successfully parsed JSON from match:", parsedJson);
-          postHogClient.capture({
-            distinctId: user_id,
-            event: 'jobinfo_extracted',
-            properties: {
-              jobinfo: parsedJson,
-              currentDomain: currentDomain,
-              pageUrl: pageUrl,
-            }
-          })
-          postHogClient.flush();
+          if (user_id) {
+            postHogClient.capture({
+              distinctId: user_id,
+              event: 'jobinfo_extracted',
+              properties: {
+                jobinfo: parsedJson,
+                currentDomain: currentDomain,
+                pageUrl: pageUrl,
+              }
+            })
+            postHogClient.flush();
+          }
           return reply.send(parsedJson);
         } else {
           throw new Error("No JSON object found in response");
