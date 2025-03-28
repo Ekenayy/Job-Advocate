@@ -16,3 +16,4 @@ export const YEARLY_PRICE_ID = process.env.YEARLY_PRICE_ID!;
 export const MONTHLY_PRICE_ID = process.env.MONTHLY_PRICE_ID!;
 export const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!;
 export const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+export const POSTHOG_API_KEY = process.env.POSTHOG_API_KEY!;
