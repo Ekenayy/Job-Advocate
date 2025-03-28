@@ -46,6 +46,7 @@ export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateE
         to_email: emailData.to_email,
       }
     })
+    postHogClient.flush();
 
     reply.status(201).send(responseData);
   } catch (error) {

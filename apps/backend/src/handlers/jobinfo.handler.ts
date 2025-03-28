@@ -83,8 +83,9 @@ Additional domain hints:
     For potential advocates:
     - Identify 6 valuable job titles at the company and within the department that would be helpful for the candidate to connect with. Follow these guidelines:
     1.	Include variations of the job title:
-    •	If the job title includes a suffix, prefix, or department/product/team specification, also include the generalized job title.
-    •	Example: If the input is "Product Manager, API", include "Product Manager".
+    •	If the job title includes seniority level, specification, or department/product/team in the suffix or prefix, also include the generalized job title.
+    •	Example of a department specification: If the input is "Product Manager, API", include "Product Manager".
+    - Example of a seniority level specification: If the input is "Director, Patient Engagement", include "Patient Engagement"
     * Include the the likely department name of the job title
     * Example: If the input is "Product Manager, API", include "Product". If the input is "Software Engineer, Payments", include "Engineering".
     2.	Include related roles:
