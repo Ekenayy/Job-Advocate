@@ -78,7 +78,10 @@ const ContentApp: React.FC = () => {
       // Get job info from content script
       let jobInfoResponse;
        try {
-         jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+         jobInfoResponse = await chrome.tabs.sendMessage(tab.id, 
+          { action: 'GET_JOB_INFO',
+            user_id: user?.externalId
+          });
        } catch (msgError) {
          console.error('Error sending message to content script:', msgError);
          // If we can't communicate with the content script, try to inject it
@@ -95,7 +98,10 @@ const ContentApp: React.FC = () => {
            await new Promise(resolve => setTimeout(resolve, 1000));
            
            // Try again after injecting the content script
-           jobInfoResponse = await chrome.tabs.sendMessage(tab.id, { action: 'GET_JOB_INFO' });
+           jobInfoResponse = await chrome.tabs.sendMessage(tab.id, 
+            { action: 'GET_JOB_INFO',
+              user_id: user?.externalId
+            });
          } catch (injectionError) {
            console.error('Error injecting content script:', injectionError);
            throw new Error('Unable to communicate with the page. Please refresh the page and try again.');

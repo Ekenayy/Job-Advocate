@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GEMINI_API_KEY } from "../constants";
-
+import { postHogClient } from "../services/postHogClient";
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -18,6 +18,7 @@ interface JobInfoRequest {
       socialProfiles: string[];
       hostingPlatform: string;
     };
+    user_id: string;
   };
 }
 
@@ -26,7 +27,7 @@ export const extractJobInfoHandler = async (
   reply: FastifyReply
 ) => {
   try {
-    const { pageContent, pageUrl, currentDomain, domainHints } = request.body;
+    const { pageContent, pageUrl, currentDomain, domainHints, user_id } = request.body;
 
     console.log("Page content length:", pageContent.length);
     console.log("Page URL:", pageUrl);
@@ -145,6 +146,16 @@ Additional domain hints:
       try {
         const parsedJson = JSON.parse(responseText);
         console.log("Successfully parsed JSON directly:", parsedJson);
+        postHogClient.capture({
+          distinctId: user_id,
+          event: 'jobinfo_extracted',
+          properties: {
+            jobinfo: parsedJson,
+            currentDomain: currentDomain,
+            pageUrl: pageUrl,
+          }
+        })
+        postHogClient.flush();
         return reply.send(parsedJson);
       } catch (directParseError) {
         // If direct parsing fails, try to extract JSON from the text
@@ -154,11 +165,22 @@ Additional domain hints:
           console.log("Extracted JSON string:", jsonStr);
           const parsedJson = JSON.parse(jsonStr);
           console.log("Successfully parsed JSON from match:", parsedJson);
+          postHogClient.capture({
+            distinctId: user_id,
+            event: 'jobinfo_extracted',
+            properties: {
+              jobinfo: parsedJson,
+              currentDomain: currentDomain,
+              pageUrl: pageUrl,
+            }
+          })
+          postHogClient.flush();
           return reply.send(parsedJson);
         } else {
           throw new Error("No JSON object found in response");
         }
       }
+
     } catch (parseError: unknown) {
       console.error("Error parsing response as JSON:", parseError);
       const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown parsing error';

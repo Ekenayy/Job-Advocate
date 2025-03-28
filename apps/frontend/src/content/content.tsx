@@ -173,7 +173,7 @@ const isJobSite = () => {
 };
 
 // Function to extract job title based on the job site
-const extractJobInfo = async () => {
+const extractJobInfo = async (user_id: string) => {
   const currentDomain = window.location.hostname.replace("www.", "");
   const pageText = document.body.innerText;
   const pageUrl = window.location.href;
@@ -220,7 +220,8 @@ const extractJobInfo = async () => {
           pageContent: pageText.substring(0, 3000),
           pageUrl: pageUrl,
           currentDomain: currentDomain,
-          domainHints: domainHints
+          domainHints: domainHints,
+          user_id: user_id
         }),
       }
     );
@@ -379,7 +380,8 @@ chrome.runtime.sendMessage({ action: "CONTENT_SCRIPT_READY", url: window.locatio
 // Listen for messages from the extension
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "GET_JOB_INFO") {
-    extractJobInfo().then(jobInfo => {
+    const user_id = request.user_id;
+    extractJobInfo(user_id).then(jobInfo => {
       // Send the job info back to the extension
       chrome.runtime.sendMessage({ 
         action: "JOB_INFO_RESULT", 
