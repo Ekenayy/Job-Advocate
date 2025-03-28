@@ -40,7 +40,7 @@ export function Paywall({
 
   const { hasAccess } = usePaywall()
 
-  const userHasAccess = hasAccess("annual") || hasAccess("monthly") || userEmails.length <= 5
+  const userHasAccess = hasAccess("annual") || hasAccess("monthly") || userEmails.length < 5
 
   isLocked = !userHasAccess
 
