@@ -4,6 +4,7 @@ import { DocxLoader } from "@langchain/community/document_loaders/fs/docx";
 import AIAgentPlatformManager from '../functions/AIAgentPlatformManager';
 import { resumeService } from '../services/resumeService';
 import { Resume } from '../types/resume.types';
+import { postHogClient } from '../services/postHogClient';
 
 export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<Resume> => {
   let user_id;
@@ -42,8 +43,24 @@ export const resumeHandler = async (request: FastifyRequest, reply: FastifyReply
     let resume;
     if (updateExisting) {
       resume = await resumeService.updateResume(resumeData, user_id, text);
+      postHogClient.capture({
+        distinctId: user_id,
+        event: 'resume_updated',
+        properties: {
+          resume_id: resume.id
+        }
+      })
+      postHogClient.flush();
     } else {
       resume = await resumeService.createResume(resumeData, user_id, text);
+      postHogClient.capture({
+        distinctId: user_id,
+        event: 'resume_created',
+        properties: {
+          resume_id: resume.id
+        }
+      })
+      postHogClient.flush();
     }
 
     reply.status(200);
