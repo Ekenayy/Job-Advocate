@@ -17,9 +17,31 @@ export const ProtectedContent = () => {
   useEffect(() => {
     const verifyOnboardingStatus = async () => {
       try {
-        // Check Gmail token status separately
-        const gmailService = GmailService.getInstance();
-        const isGmailAuthenticated = await gmailService.isAuthenticated();
+        // Check Gmail token status separately, but only if needed
+        const lastAuthCheck = await chrome.storage.local.get(['gmailAuthLastChecked']);
+        const TEN_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
+        
+        let isGmailAuthenticated = false;
+        
+        // Only check Gmail auth if we haven't checked recently
+        if (!lastAuthCheck.gmailAuthLastChecked || 
+            Date.now() - lastAuthCheck.gmailAuthLastChecked > TEN_MINUTES) {
+          const gmailService = GmailService.getInstance();
+          isGmailAuthenticated = await gmailService.isAuthenticated();
+          
+          // Store the check time
+          if (chrome.storage) {
+            await chrome.storage.local.set({
+              gmailAuthLastChecked: Date.now(),
+              gmailAuthResult: isGmailAuthenticated
+            });
+          }
+          
+        } else {
+          // Use the cached result
+          isGmailAuthenticated = lastAuthCheck.gmailAuthResult || false;
+        }
+        
         setHasGmailToken(isGmailAuthenticated);
         
         // Check overall onboarding status

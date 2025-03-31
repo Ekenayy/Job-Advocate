@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import SecondStep from "./SecondStep";
 import ThirdStep from "./ThirdStep";
 import { useUser } from "../../context/UserProvder";
+import { RingLoader } from "react-spinners";
 
 interface OnboardingProps {
     setIsOnboardingComplete: (isOnboardingComplete: boolean) => Promise<boolean>;
@@ -14,18 +15,30 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasExistingResume, setHasExistingResume] = useState(false);
+  const [isCheckingResume, setIsCheckingResume] = useState(true);
 
   const { setResume, user, contextResume } = useUser();
 
   // Check if user already has a resume
   useEffect(() => {
-    if (contextResume) {
-      setHasExistingResume(true);
-      // If user already has a job title in their resume, use it
-      if (contextResume.parsed_data?.job_title) {
-        setJobTitle(contextResume.parsed_data.job_title as string);
+    const checkResume = async () => {
+      setIsCheckingResume(true);
+      try {
+        if (contextResume) {
+          setHasExistingResume(true);
+          // If user already has a job title in their resume, use it
+          if (contextResume.parsed_data?.job_title) {
+            setJobTitle(contextResume.parsed_data.job_title as string);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking resume:', error);
+      } finally {
+        setIsCheckingResume(false);
       }
-    }
+    };
+    
+    checkResume();
   }, [contextResume]);
 
   const handleNext = async () => {
@@ -103,6 +116,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
     } else {
       setCurrentStep(currentStep + 1);
     }
+  }
+
+  // Show loading spinner while checking resume status
+  if (isCheckingResume) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <RingLoader color="#155dfc" size={60} />
+        <p className="mt-4 text-gray-600">Setting up your account...</p>
+      </div>
+    );
   }
 
   const steps = [

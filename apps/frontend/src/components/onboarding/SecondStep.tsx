@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PropagateLoader } from 'react-spinners';
+import { PropagateLoader, RingLoader } from 'react-spinners';
 import { GmailService } from '../../services/gmailService';
 
 interface SecondStepProps {
@@ -25,12 +25,20 @@ const SecondStep: React.FC<SecondStepProps> = ({
 }) => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const gmailService = GmailService.getInstance();
-      const isAuthed = await gmailService.isAuthenticated();
-      setIsAuthenticated(isAuthed);
+      setIsCheckingAuth(true);
+      try {
+        const gmailService = GmailService.getInstance();
+        const isAuthed = await gmailService.isAuthenticated();
+        setIsAuthenticated(isAuthed);
+      } catch (error) {
+        console.error('Error checking Gmail authentication:', error);
+      } finally {
+        setIsCheckingAuth(false);
+      }
     };
     checkAuth();
   }, []);
@@ -72,6 +80,16 @@ const SecondStep: React.FC<SecondStepProps> = ({
   const title = hasExistingResume 
     ? "Reconnect your Gmail account" 
     : "Welcome, let's setup your account";
+
+  // Show loading spinner while checking authentication status
+  if (isCheckingAuth) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 h-64">
+        <RingLoader color="#155dfc" size={60} />
+        <p className="mt-4 text-gray-600">Checking your Gmail connection...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4 w-full max-w-sm">

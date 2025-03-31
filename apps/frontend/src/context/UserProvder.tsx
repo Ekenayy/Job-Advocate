@@ -174,14 +174,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     await removeFromStorage('lastAdvocates');
     await removeFromStorage('userEmails');
     await removeFromStorage('jobInfo');
-    await removeFromStorage('hasSeenThirdStep');
+    // Don't remove hasSeenThirdStep - users shouldn't have to repeat this step
+    // await removeFromStorage('hasSeenThirdStep');
     
     // Reset state
     setContextResume(null);
     setLastAdvocates([]);
     setUserEmails([]);
     setJobInfoState(defaultJobInfo);
-    setHasSeenThirdStep(false);
+    // Don't reset hasSeenThirdStep
+    // setHasSeenThirdStep(false);
   };
 
   useEffect(() => {

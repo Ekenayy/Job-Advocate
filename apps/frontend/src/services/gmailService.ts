@@ -57,6 +57,17 @@ export class GmailService {
       return false;
     }
 
+    // Add a local validation cache to reduce network calls
+    // Only validate with Google once per hour at most
+    const lastValidationTime = await chrome.storage.local.get(['gmailTokenLastValidated']);
+    const ONE_HOUR = 60 * 60 * 1000; // 1 hour in milliseconds
+    
+    if (lastValidationTime.gmailTokenLastValidated && 
+        Date.now() - lastValidationTime.gmailTokenLastValidated < ONE_HOUR) {
+      // Skip the network call if we've validated recently
+      return true;
+    }
+
     // Verify token is still valid with Google
     try {
       const response = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo', {
@@ -65,6 +76,14 @@ export class GmailService {
           'Authorization': `Bearer ${this.accessToken}`
         }
       });
+      
+      // Store the validation time
+      if (typeof chrome !== 'undefined' && chrome.storage) {
+        await chrome.storage.local.set({
+          gmailTokenLastValidated: Date.now()
+        });
+      }
+      
       return response.ok;
     } catch (error) {
       console.error('Token validation failed:', error);
