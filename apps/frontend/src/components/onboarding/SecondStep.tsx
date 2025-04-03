@@ -26,6 +26,7 @@ const SecondStep: React.FC<SecondStepProps> = ({
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -47,11 +48,45 @@ const SecondStep: React.FC<SecondStepProps> = ({
     setIsAuthenticating(true);
     try {
       const gmailService = GmailService.getInstance();
-      await gmailService.authenticate();
-      setIsAuthenticated(true);
+      
+      // First try to invalidate any existing token that might be causing issues
+      try {
+        await gmailService.invalidateToken();
+        console.log('Successfully invalidated previous token');
+      } catch (error) {
+        console.warn('Error while invalidating token, continuing anyway:', error);
+      }
+      
+      // Force interactive authentication to ensure we get a fresh token
+      console.log('Starting interactive authentication...');
+      await gmailService.authenticate(true);
+      
+      // Verify that the new token is valid
+      const isAuthed = await gmailService.isAuthenticated();
+      console.log('Authentication result:', isAuthed ? 'success' : 'failed');
+      setIsAuthenticated(isAuthed);
+      
+      if (!isAuthed) {
+        throw new Error('Authentication succeeded but token validation failed');
+      }
     } catch (error) {
       console.error('Gmail authentication failed:', error);
-      // Show error to user
+      // Extract user-friendly error message
+      if (error instanceof Error) {
+        if (error.message.includes('user_cancelled')) {
+          setAuthError('Authentication was cancelled. Please try again.');
+        } else if (error.message.includes('popup_blocked')) {
+          setAuthError('Pop-up was blocked. Please allow pop-ups for this site and try again.');
+        } else if (error.message.includes('Authorization page could not be loaded')) {
+          setAuthError('Google authorization page could not be loaded. Please check your internet connection and try again.');
+        } else if (error.message.includes('OAuth2 request failed')) {
+          setAuthError('Authentication request failed. Please try again later.');
+        } else {
+          setAuthError(`Authentication failed: ${error.message}`);
+        }
+      } else {
+        setAuthError('Authentication failed for an unknown reason. Please try again.');
+      }
     } finally {
       setIsAuthenticating(false);
     }

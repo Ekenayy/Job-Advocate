@@ -125,24 +125,69 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Update the completeOnboarding function to verify conditions are met
-  const completeOnboarding = async () => {
+  const completeOnboarding = async (forceComplete: boolean = false) => {
     // Mark that the user has seen the third step
     setHasSeenThirdStep(true);
     await setToStorage('hasSeenThirdStep', true);
     
-    // Only mark as complete if we have a resume and valid Gmail token
-    const gmailService = GmailService.getInstance();
-    const hasValidGmailToken = await gmailService.isAuthenticated();
-    
-    if (contextResume && hasValidGmailToken) {
+    // If forceComplete is true, bypass checks (used for debugging)
+    if (forceComplete) {
       setIsOnboardingComplete(true);
       await setToStorage('isOnboardingComplete', true);
+      console.log('Onboarding completed with force flag');
       return true;
     }
+
+    // Check for resume
+    if (!contextResume) {
+      console.warn('Cannot complete onboarding: missing resume');
+      return false;
+    }
+
+    // Check for Gmail token validity with detailed logging
+    console.log('Verifying Gmail token before completing onboarding');
+    const gmailService = GmailService.getInstance();
     
-    // If conditions aren't met, don't mark as complete
-    console.warn('Cannot complete onboarding: missing resume or valid Gmail token');
-    return false;
+    try {
+      let hasValidGmailToken = await gmailService.isAuthenticated();
+      console.log('Initial token validation result:', hasValidGmailToken);
+      
+      // If token is not valid, try to authenticate
+      if (!hasValidGmailToken) {
+        console.log('Initial Gmail token check failed, attempting authentication...');
+        try {
+          // Try silent auth first
+          await gmailService.authenticate(false);
+          // Check again after authentication attempt
+          hasValidGmailToken = await gmailService.isAuthenticated();
+          console.log('Silent authentication result:', hasValidGmailToken ? 'success' : 'failed');
+          
+          // If silent auth failed, we'll let the caller handle interactive auth
+          // instead of automatically triggering it here
+        } catch (error) {
+          console.error('Error during silent authentication:', error);
+          // Continue with the result of the token check
+        }
+      }
+      
+      // If we have a resume and valid token, complete onboarding
+      if (contextResume && hasValidGmailToken) {
+        console.log('All conditions met, marking onboarding as complete');
+        setIsOnboardingComplete(true);
+        await setToStorage('isOnboardingComplete', true);
+        return true;
+      }
+      
+      // If conditions aren't met, don't mark as complete
+      console.warn('Cannot complete onboarding:', {
+        hasResume: !!contextResume,
+        hasValidGmailToken
+      });
+      return false;
+    } catch (error) {
+      console.error('Error checking Gmail authentication:', error);
+      return false;
+    }
   };
 
   const setLastContextAdvocates = async (advocates: Employee[]) => {

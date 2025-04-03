@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import SecondStep from "./SecondStep";
 import ThirdStep from "./ThirdStep";
 import { useUser } from "../../context/UserProvder";
 import { RingLoader } from "react-spinners";
+import { GmailService } from "../../services/gmailService";
 
 interface OnboardingProps {
     setIsOnboardingComplete: (isOnboardingComplete: boolean) => Promise<boolean>;
@@ -46,14 +47,41 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
       // If user already has a resume, skip the resume upload step
       if (hasExistingResume) {
         try {
+          setIsLoading(true);
+          setError(null);
+          
+          // Ensure we have a valid Gmail token
+          const gmailService = GmailService.getInstance();
+          let isAuthed = await gmailService.isAuthenticated();
+          
+          if (!isAuthed) {
+            console.log('Token invalid before completing onboarding, attempting authentication...');
+            try {
+              await gmailService.authenticate(true); // Force interactive auth
+              isAuthed = await gmailService.isAuthenticated();
+              
+              if (!isAuthed) {
+                throw new Error('Authentication failed after interactive attempt');
+              }
+            } catch (error) {
+              console.error('Authentication error:', error);
+              setError('Unable to authenticate with Gmail. Please try reconnecting your account.');
+              setIsLoading(false);
+              return;
+            }
+          }
+          
+          // Now try to complete onboarding
           const success = await setIsOnboardingComplete(true);
           if (!success) {
             setError('Unable to complete onboarding. Please ensure you have connected your Gmail account.');
+            setIsLoading(false);
             return;
           }
         } catch (error) {
           console.error('Error completing onboarding:', error);
-          setError('Failed to complete onboarding');
+          setError('Failed to complete onboarding. Please try again.');
+          setIsLoading(false);
           return;
         }
         return;
@@ -61,6 +89,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
 
       // Otherwise, proceed with resume upload
       setIsLoading(true);
+      setError(null);
 
       if (!resumeFile) {
         setError('Please upload a resume');
@@ -93,22 +122,62 @@ export const Onboarding: React.FC<OnboardingProps> = ({ setIsOnboardingComplete 
         setCurrentStep(currentStep + 1);
       } catch (error) {
         console.error('Error onboarding:', error);
-        setError('Failed to upload resume');
+        setError('Failed to upload resume. Please try again.');
         setIsLoading(false);
       }
 
     } else if (currentStep === 1) {
       setIsLoading(true);
+      setError(null);
       try {
+        // Ensure we have a valid Gmail token before trying to complete onboarding
+        const gmailService = GmailService.getInstance();
+        let isAuthed = await gmailService.isAuthenticated();
+        
+        // If not authenticated, try to authenticate
+        if (!isAuthed) {
+          console.log('Token invalid before completing onboarding, attempting authentication...');
+          try {
+            // First try silent auth
+            await gmailService.authenticate(false);
+            isAuthed = await gmailService.isAuthenticated();
+            
+            // If silent auth failed, try interactive auth
+            if (!isAuthed) {
+              console.log('Silent authentication failed, trying interactive auth...');
+              await gmailService.authenticate(true);
+              isAuthed = await gmailService.isAuthenticated();
+            }
+            
+            if (!isAuthed) {
+              throw new Error('Authentication failed after multiple attempts');
+            }
+          } catch (error) {
+            console.error('Authentication error:', error);
+            setError('Unable to authenticate with Gmail. Please try reconnecting your account.');
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // Now try to complete onboarding
         const success = await setIsOnboardingComplete(true);
         if (!success) {
-          setError('Unable to complete onboarding. Please ensure you have uploaded a resume and connected your Gmail account.');
+          // Check what's missing
+          const hasResume = !!contextResume;
+          setError(
+            !hasResume 
+              ? 'Unable to complete onboarding. Your resume information is missing.' 
+              : !isAuthed
+                ? 'Unable to complete onboarding. Please ensure you have connected your Gmail account.'
+                : 'Unable to complete onboarding. Please try again.'
+          );
           setIsLoading(false);
           return;
         }
       } catch (error) {
         console.error('Error completing onboarding:', error);
-        setError('Failed to complete onboarding');
+        setError('Failed to complete onboarding. Please try again.');
         setIsLoading(false);
         return;
       }
