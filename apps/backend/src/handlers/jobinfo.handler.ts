@@ -82,20 +82,18 @@ Additional domain hints:
     - Keep the specialization (Frontend, Backend, Full Stack, etc.) if present
 
     For potential advocates:
-    - Identify 6 valuable job titles at the company and within the department that would be helpful for the candidate to connect with. Follow these guidelines:
+    - Identify 4 valuable job titles at the company and within the department that would be helpful for the candidate to connect with. Follow these guidelines:
     1.	Include variations of the job title:
     •	If the job title includes seniority level, specification, or department/product/team in the suffix or prefix, also include the generalized job title.
     •	Example of a department specification: If the input is "Product Manager, API", include "Product Manager".
     - Example of a seniority level specification: If the input is "Director, Patient Engagement", include "Patient Engagement"
     * Include the the likely department name of the job title
     * Example: If the input is "Product Manager, API", include "Product". If the input is "Software Engineer, Payments", include "Engineering".
-    2.	Include related roles:
-    •	Include team members with similar job functions.
-    3.	Identify the hiring manager's likely title. Do not include generic titles. 
+    2.	Identify the hiring manager's likely title. Do not include generic titles. 
     •	Example: If the input is "Product Manager, API", include "Director of Product". Do not include "Product Lead" or "Product Leader"
-    4.	Include senior decision-makers:
+    3.	Include senior decision-makers:
     •	Include senior roles from the same department that could influence the hiring decision.
-    5. Do not include anyone who is not in the department.
+    4. Do not include anyone who is not in the department.
     -Example: If the job title is "Product Manager, API", do not include "Software Engineer" or "Engineering Manager"
     5.	Format the output as an array of standardized job titles:
     •	Example: ["Engineering Manager", "Senior Software Engineer", "Software Engineer"]
