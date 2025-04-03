@@ -19,6 +19,28 @@ const isExecutivePosition = (position: string): boolean => {
   return EXECUTIVE_TITLES.some(title => lowerPosition.includes(title));
 };
 
+// Helper function to create a unique key for an employee based on first_name, last_name, and source_page
+const createEmployeeKey = (employee: Employee): string => {
+  return `${employee.first_name.toLowerCase()}_${employee.last_name.toLowerCase()}_${employee.source_page}`;
+};
+
+// Helper function to remove duplicate employees based on first_name, last_name, and source_page
+const removeDuplicateEmployees = (employees: Employee[]): Employee[] => {
+  const uniqueEmployees = new Map<string, Employee>();
+  
+  for (const employee of employees) {
+    const key = createEmployeeKey(employee);
+    // Only add if we don't already have an employee with this key
+    if (!uniqueEmployees.has(key)) {
+      uniqueEmployees.set(key, employee);
+    } else {
+      console.log(`Removing duplicate employee: ${employee.first_name} ${employee.last_name} from ${employee.source_page}`);
+    }
+  }
+  
+  return Array.from(uniqueEmployees.values());
+};
+
 export const searchDomainEmployees = async (
   domain: string,
   jobTitle: string,
@@ -141,6 +163,31 @@ export const searchDomainEmployees = async (
     // Add this right after getting prospectsResult
     console.log("Sample prospect with emails:", JSON.stringify(prospectsResult.data[0], null, 2));
 
+    // First, remove duplicate prospects from the API response
+    // Create a Map to track unique prospects based on first_name, last_name, and source_page
+    const uniqueProspectsMap = new Map<string, any>();
+    
+    for (const prospect of prospectsResult.data) {
+      // Make sure these fields exist before using them
+      if (prospect.first_name && prospect.last_name && prospect.source_page) {
+        const key = `${prospect.first_name.toLowerCase()}_${prospect.last_name.toLowerCase()}_${prospect.source_page}`;
+        
+        if (!uniqueProspectsMap.has(key)) {
+          uniqueProspectsMap.set(key, prospect);
+        } else {
+          console.log(`Found duplicate prospect: ${prospect.first_name} ${prospect.last_name} from ${prospect.source_page}`);
+        }
+      } else {
+        // If a prospect is missing any of these fields, still include it
+        // Use a unique key based on the object reference
+        uniqueProspectsMap.set(`incomplete_${uniqueProspectsMap.size}`, prospect);
+      }
+    }
+    
+    // Get the unique prospects back as an array
+    const uniqueProspects = Array.from(uniqueProspectsMap.values());
+    console.log(`Filtered ${prospectsResult.data.length} prospects down to ${uniqueProspects.length} unique prospects`);
+
     const getProspectEmails = async (prospect: any): Promise<Employee | null> => {
       try {
         // Case 1: Direct emails object
@@ -211,8 +258,8 @@ export const searchDomainEmployees = async (
 
     // Sort prospects to prioritize a mix of executives and non-executives
     // We want to include the first two executives and prioritize non-executives for the rest
-    const executiveProspects = prospectsResult.data.filter((p: any) => isExecutivePosition(p.position));
-    const nonExecutiveProspects = prospectsResult.data.filter((p: any) => !isExecutivePosition(p.position));
+    const executiveProspects = uniqueProspects.filter((p: any) => isExecutivePosition(p.position));
+    const nonExecutiveProspects = uniqueProspects.filter((p: any) => !isExecutivePosition(p.position));
     
     // Take the first two executives (if they exist) and add them to the front of our processing queue
     const priorityExecutives = executiveProspects.slice(0, 2);
@@ -238,7 +285,7 @@ export const searchDomainEmployees = async (
     const employees: Employee[] = [];
     const executiveEmployees: Employee[] = [];
     const nonExecutiveEmployees: Employee[] = [];
-    const minRequiredEmployees = 5; // Set minimum threshold
+    const minRequiredEmployees = 8; // Set minimum threshold
     const maxExecutives = 2; // Maximum number of executives to include
     
     // Process promises in order to check if we have enough results
@@ -267,15 +314,22 @@ export const searchDomainEmployees = async (
     employees.push(...nonExecutiveEmployees);
     employees.push(...executiveEmployees.slice(0, maxExecutives));
     
-    console.log(`Final employee breakdown: ${employees.length} total, ${nonExecutiveEmployees.length} non-executives, ${Math.min(executiveEmployees.length, maxExecutives)} executives (prioritized first ${maxExecutives} executives)`);
+    // Final check for duplicates just to be safe
+    const finalEmployees = removeDuplicateEmployees(employees);
+    const duplicatesRemoved = employees.length - finalEmployees.length;
+    if (duplicatesRemoved > 0) {
+      console.log(`Removed ${duplicatesRemoved} duplicate employees in final list`);
+    }
     
-    if (employees.length === 0) {
+    console.log(`Final employee breakdown: ${finalEmployees.length} total, ${nonExecutiveEmployees.length} non-executives, ${Math.min(executiveEmployees.length, maxExecutives)} executives (prioritized first ${maxExecutives} executives)`);
+    
+    if (finalEmployees.length === 0) {
       console.error('No valid employees found with all required fields');
       throw new Error('No valid employees found with all required fields');
     }
 
-    console.log("Successfully mapped employees:", employees.length);
-    return employees;
+    console.log("Successfully mapped employees:", finalEmployees.length);
+    return finalEmployees;
   } catch (error) {
     console.error("Detailed error in searchDomainEmployees:", error);
     throw error;
