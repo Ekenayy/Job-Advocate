@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import SecondStep from "./SecondStep";
 import ThirdStep from "./ThirdStep";
 import { useUser } from "../../context/UserProvder";
