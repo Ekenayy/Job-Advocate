@@ -44,6 +44,7 @@ export const createCheckoutSessionHandler = async (
       mode: 'subscription',
       success_url: successUrl,
       cancel_url: cancelUrl,
+      allow_promotion_codes: true,
       customer_email: customerEmail,
       client_reference_id: userId, // Store user ID for webhook
       metadata: {
