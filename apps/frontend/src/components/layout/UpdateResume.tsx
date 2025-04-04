@@ -68,7 +68,7 @@ const UpdateResume = () => {
         {contextResume ? (
           <div className="bg-gray-50 py-4 px-2 rounded-lg">
             <p className="text-sm text-gray-600">
-              Last updated: {new Date(contextResume.created_at || new Date()).toLocaleDateString()}
+              Last updated: {new Date(contextResume.updated_at || contextResume.created_at || new Date()).toLocaleDateString()}
             </p>
             {contextResume.raw_text && (
               <div className="mt-2 text-sm text-gray-700 max-h-[30vh] overflow-y-auto">

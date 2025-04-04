@@ -4,7 +4,7 @@ import { CreateEmailSchemaType } from '../schemas/email.schema';
 import { SendEmailInput, EmailStatus, Email } from '../types/email.types';
 import { GenerateAIEmailType } from '../schemas/email.schema';
 import AIAgentPlatformManager from '../functions/AIAgentPlatformManager';
-
+import { postHogClient } from '../services/postHogClient';
 export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateEmailSchemaType }>, reply: FastifyReply) => {
   
   try {
@@ -36,6 +36,17 @@ export const createEmailHandler = async (request: FastifyRequest<{ Body: CreateE
       status: ((emailData as unknown as { status: EmailStatus }).status || 'pending') as EmailStatus,
       error_message: (emailData as unknown as { error_message?: string }).error_message || '' 
     };
+
+    postHogClient.capture({
+      distinctId: emailData.user_id,
+      event: 'email_created',
+      properties: {
+        email_id: emailData.id,
+        status: responseData.status,
+        to_email: emailData.to_email,
+      }
+    })
+    postHogClient.flush();
 
     reply.status(201).send(responseData);
   } catch (error) {
