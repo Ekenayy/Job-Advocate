@@ -219,6 +219,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     await removeFromStorage('lastAdvocates');
     await removeFromStorage('userEmails');
     await removeFromStorage('jobInfo');
+    await removeFromStorage('gmailToken');
+    await removeFromStorage('tokenExpiration');
+    await removeFromStorage('gmailTokenLastValidated');
+    await removeFromStorage('gmailAuthLastChecked');
+    await removeFromStorage('tokenExpiration');
     // Don't remove hasSeenThirdStep - users shouldn't have to repeat this step
     // await removeFromStorage('hasSeenThirdStep');
     
