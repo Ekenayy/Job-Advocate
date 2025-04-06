@@ -75,6 +75,8 @@ Additional domain hints:
     For the company name:
     - Return the most likely, widely used company name.
     -Example: If the company name is "Amazon.com Services LLC" return "Amazon" 
+    - Read the entire page content to determine the most likely company name. Sometimes hints can be found at the very end of the page. 
+    - Example: A job description for a company called "Function" might include the name "Function Health" later in the page. In this case, return "Function Health" as the company name.
 
     For the job title:
     - First, identify if the job title has suffixes, prefixes or department/product/team specifications.

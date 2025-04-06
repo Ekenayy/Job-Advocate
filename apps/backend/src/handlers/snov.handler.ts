@@ -55,7 +55,7 @@ export const searchEmployeesHandler = async (
         });
       } else if (snovError.message?.includes('domain search timed out')) {
         console.log('Search timeout error with Snov.io');
-        return reply.status(408).send({
+        return reply.status(404).send({
           error: 'Search timed out',
           details: 'The employee search took too long to complete',
           suggestions: ['Try again later when our services are less busy'],
@@ -121,7 +121,7 @@ export const getCompanyDomainHandler = async (
   try {
     const { names } = request.body;
     
-    if (!names) {
+    if (!names || names.length === 0) {
       return reply.status(400).send({ 
         error: 'Missing required parameter',
         details: 'Company name is required to search for domain',
@@ -144,10 +144,23 @@ export const getCompanyDomainHandler = async (
           details: 'We couldn\'t authenticate with our domain search service',
           code: 'AUTH_FAILED'
         });
-      } else if (snovError.message?.includes('No domain found')) {
+      } else if (
+        snovError.message?.includes('No domain found') || 
+        snovError.message?.includes('No results found') ||
+        snovError.message?.includes('timed out')
+      ) {
+        // Return 404 for any case where we couldn't get the domain
+        // This includes timeouts, as we want to show the manual input dialog
         return reply.status(404).send({
           error: 'Domain not found',
-          details: `We couldn't find a domain for company: ${names}`,
+          details: snovError.message?.includes('timed out') 
+            ? 'The domain search took too long. Please enter the domain manually.'
+            : `We couldn't find a domain for company: ${names[0]}`,
+          suggestions: [
+            'Enter the domain manually',
+            'Check if the company name is spelled correctly',
+            'Try using the company\'s legal name'
+          ],
           code: 'DOMAIN_NOT_FOUND'
         });
       }
