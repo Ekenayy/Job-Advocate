@@ -542,6 +542,11 @@ const ContentApp: React.FC = () => {
             No advocates found for this job.
           </div>
         )}
+        {advocates.length > 0 && selectedAdvocate === null && emailedAdvocates.length === 0 && (
+          <div className="text-center text-gray-500">
+            Was this the wrong company? <button onClick={() => setShowDomainInput(true)} className="text-blue-500 hover:text-blue-600 cursor-pointer">Try again</button>
+          </div>
+        )}
       </div>
     </div>
   );
