@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { searchEmployeesHandler } from "../handlers/snov.handler";
+import { searchEmployeesHandler, getCompanyDomainHandler } from "../handlers/snov.handler";
 import {
   snovSearchQuerySchema,
   snovSearchResponseSchema,
@@ -16,5 +16,20 @@ export default async function snovRoutes(fastify: FastifyInstance) {
       }
     },
     handler: searchEmployeesHandler
+  });
+
+  fastify.route({
+    method: 'POST',
+    url: '/snov/domain',
+    schema: {
+      body: {
+        type: "object",
+        required: ["names"],
+        properties: {
+          names: { type: "array", items: { type: "string" } },
+        },
+      },
+    },
+    handler: getCompanyDomainHandler
   });
 }

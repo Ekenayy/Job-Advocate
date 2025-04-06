@@ -65,58 +65,82 @@ const ContentApp: React.FC = () => {
 
   const fetchJobInfoAndEmployees = async () => {
     setIsLoading(true);
-    setError(null); // Clear previous errors
-    setIsJobListingPage(false); // Reset job listing page flag
-    setShowDomainInput(false); // Hide domain input if it was shown
-    setErrorCode(null); // Reset error code
+    setError(null);
+    setIsJobListingPage(false);
+    setShowDomainInput(false);
+    setErrorCode(null);
     
     try {
-      // Get current tab
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       if (!tab?.id) throw new Error('No active tab found');
 
-      // Get job info from content script
       let jobInfoResponse;
-       try {
-         jobInfoResponse = await chrome.tabs.sendMessage(tab.id, 
+      try {
+        jobInfoResponse = await chrome.tabs.sendMessage(tab.id, 
           { action: 'GET_JOB_INFO',
             user_id: user?.externalId
           });
-       } catch (msgError) {
-         console.error('Error sending message to content script:', msgError);
-         // If we can't communicate with the content script, try to inject it
-         try {
-           const contentScriptPath = getContentScriptPath();
-           
-           // Use the function approach to notify the background script
-           await chrome.scripting.executeScript({
-             target: { tabId: tab.id },
-             func: contentScriptPath.func
-           });
-           
-           // Wait a moment for the background script to handle the injection
-           await new Promise(resolve => setTimeout(resolve, 1000));
-           
-           // Try again after injecting the content script
-           jobInfoResponse = await chrome.tabs.sendMessage(tab.id, 
+      } catch (msgError) {
+        console.error('Error sending message to content script:', msgError);
+        try {
+          const contentScriptPath = getContentScriptPath();
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: contentScriptPath.func
+          });
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          jobInfoResponse = await chrome.tabs.sendMessage(tab.id, 
             { action: 'GET_JOB_INFO',
               user_id: user?.externalId
             });
-         } catch (injectionError) {
-           console.error('Error injecting content script:', injectionError);
-           throw new Error('Unable to communicate with the page. Please refresh the page and try again.');
-         }
-       }
+        } catch (injectionError) {
+          console.error('Error injecting content script:', injectionError);
+          throw new Error('Unable to communicate with the page. Please refresh the page and try again.');
+        }
+      }
 
-      // Check if we're on a job listing page - do this check FIRST before any other processing
       if (jobInfoResponse.isJobListingPage) {
         setIsJobListingPage(true);
-        setIsLoading(false); // Stop loading immediately
-        return; // Exit early without making backend calls
+        setIsLoading(false);
+        return;
       }
 
       if (!jobInfoResponse.isJobSite) {
         throw new Error('This page does not appear to be a job posting');
+      }
+
+      // Get company domain using the new endpoint
+      let domain;
+      try {
+        const domainResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/snov/domain`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            names: [jobInfoResponse.companyName]
+          })
+        });
+
+        if (!domainResponse.ok) {
+          const errorData = await domainResponse.json();
+          if (errorData.code === 'DOMAIN_NOT_FOUND') {
+            setShowDomainInput(true);
+            setError('We couldn\'t automatically find the company\'s domain. Please enter it manually.');
+            return;
+          }
+          throw new Error(errorData.details || 'Failed to get company domain');
+        }
+
+        const domainData = await domainResponse.json();
+
+        console.log("domainData:", domainData);
+        domain = domainData.domain;
+      } catch (domainError) {
+        console.error('Error getting company domain:', domainError);
+        setShowDomainInput(true);
+        setError('We couldn\'t automatically find the company\'s domain. Please enter it manually.');
+        return;
       }
 
       // Update job info with all expected fields in the context
@@ -125,14 +149,15 @@ const ContentApp: React.FC = () => {
         jobRequirements: jobInfoResponse.jobRequirements || "",
         companyName: jobInfoResponse.companyName || "",
         potentialAdvocates: jobInfoResponse.potentialAdvocates || [],
-        domain: jobInfoResponse.domain || "",
+        domain: domain,
         jobTitle: jobInfoResponse.jobTitle || ""
       });
 
+      console.log("domain:", domain);
       // Call searchEmployees with the detected domain
       await searchEmployees(
-        jobInfoResponse.domain, 
-        jobInfoResponse.jobTitle || "", 
+        domain,
+        jobInfoResponse.jobTitle || "",
         jobInfoResponse.potentialAdvocates || []
       );
 
@@ -141,7 +166,6 @@ const ContentApp: React.FC = () => {
 
       if (error instanceof ErrorWithDetails) {
         setErrorCode(error.code);
-
         
         if (error.code === "NO_VALID_EMPLOYEES" && jobInfo) {
           console.log('Showing domain input dialog for NO_VALID_EMPLOYEES error');

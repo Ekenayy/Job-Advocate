@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { searchDomainEmployees } from '../services/snovService';
+import { searchDomainEmployees, getCompanyDomain } from '../services/snovService';
 import { snovSearchQuerySchemaType } from '../schemas/snov.schema';
 
 export const searchEmployeesHandler = async (
@@ -107,6 +107,60 @@ export const searchEmployeesHandler = async (
     return reply.status(500).send({ 
       error: 'Service error',
       details: 'We encountered an unexpected error while searching for employees',
+      code: 'SERVICE_ERROR'
+    });
+  }
+};
+
+export const getCompanyDomainHandler = async (
+  request: FastifyRequest<{
+    Body: { names: string[] }
+  }>,
+  reply: FastifyReply
+) => {
+  try {
+    const { names } = request.body;
+    
+    if (!names) {
+      return reply.status(400).send({ 
+        error: 'Missing required parameter',
+        details: 'Company name is required to search for domain',
+        code: 'MISSING_PARAMETERS'
+      });
+    }
+
+    console.log("names:", names);
+
+    try {
+      const domain = await getCompanyDomain(names);
+      return reply.send({ domain });
+      
+    } catch (snovError: any) {
+      console.error('Snov.io service error:', snovError.message);
+      
+      if (snovError.message?.includes('access token')) {
+        return reply.status(401).send({
+          error: 'API authentication failed',
+          details: 'We couldn\'t authenticate with our domain search service',
+          code: 'AUTH_FAILED'
+        });
+      } else if (snovError.message?.includes('No domain found')) {
+        return reply.status(404).send({
+          error: 'Domain not found',
+          details: `We couldn't find a domain for company: ${names}`,
+          code: 'DOMAIN_NOT_FOUND'
+        });
+      }
+      
+      // Re-throw for general error handling
+      throw snovError;
+    }
+  } catch (error) {
+    console.error('Detailed error in getCompanyDomainHandler:', error);
+    
+    return reply.status(500).send({ 
+      error: 'Service error',
+      details: 'We encountered an unexpected error while searching for the company domain',
       code: 'SERVICE_ERROR'
     });
   }

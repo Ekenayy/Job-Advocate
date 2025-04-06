@@ -222,7 +222,7 @@ export const searchDomainEmployees = async (
           // Poll the result URL until we get emails - use longer timeout for email searches
           // Pass true for checkValidEmails to enable early termination when valid emails are found
           const resultUrl = searchResponse.data.links.result;
-          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 20, 4000, true);
+          const emailResult = await pollForResults(resultUrl, tokenData.access_token, 20, 5000, true);
           
           console.log(`Email result for ${prospect.first_name}:`, emailResult);
           
@@ -395,4 +395,113 @@ const pollForResults = async (
   }
 
   throw new Error('Email search timed out');
+};
+
+export const getCompanyDomain = async (names: string[]): Promise<string> => {
+  try {
+    console.log("Getting domain for companies:", names);
+
+    // First get access token
+    const tokenResponse = await fetch(
+      "https://api.snov.io/v1/oauth/access_token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          grant_type: "client_credentials",
+          client_id: process.env.SNOV_CLIENT_ID,
+          client_secret: process.env.SNOV_CLIENT_SECRET,
+        }),
+      }
+    );
+
+    if (!tokenResponse.ok) {
+      const tokenData = await tokenResponse.json();
+      throw new Error(
+        `Failed to get Snov.io access token: ${JSON.stringify(tokenData)}`
+      );
+    }
+
+    const tokenData = await tokenResponse.json();
+
+    // Start the company domain search
+    const searchResponse = await fetch("https://api.snov.io/v2/company-domain-by-name/start", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        names: names
+      }),
+    });
+
+    if (!searchResponse.ok) {
+      const errorData = await searchResponse.json();
+      throw new Error(`Failed to start company domain search: ${JSON.stringify(errorData)}`);
+    }
+
+    const searchData = await searchResponse.json();
+    console.log("Domain search started:", searchData);
+
+    if (!searchData.data?.task_hash) {
+      throw new Error(`Invalid response from domain search: ${JSON.stringify(searchData)}`);
+    }
+
+    // Poll for results using the task hash
+    const pollDomainResult = async (taskHash: string): Promise<any> => {
+      const maxAttempts = 15;
+      const initialDelay = 3000;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const resultResponse = await fetch(
+          `https://api.snov.io/v2/company-domain-by-name/result?task_hash=${taskHash}`,
+          {
+            headers: {
+              Authorization: `Bearer ${tokenData.access_token}`,
+            },
+          }
+        );
+
+        if (resultResponse.ok) {
+          const resultData = await resultResponse.json();
+          console.log(`Poll attempt ${attempt + 1}/${maxAttempts}: Status: ${resultData.status}`);
+
+          if (resultData.status === 'completed') {
+            return resultData;
+          }
+
+          // Wait before next attempt (exponential backoff)
+          const delay = initialDelay * Math.pow(0.5, attempt);
+          console.log(`Waiting ${delay}ms before next poll attempt`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          const errorData = await resultResponse.json();
+          throw new Error(`Failed to poll for results: ${JSON.stringify(errorData)}`);
+        }
+      }
+
+      throw new Error('Domain search timed out');
+    };
+
+    const domainResult = await pollDomainResult(searchData.data.task_hash);
+    console.log("Domain search result:", domainResult);
+    console.log("Domain result data:", domainResult.data[0].result);
+
+    // Find the domain for the first company name in our list
+    const companyResult = domainResult.data?.find((item: any) => 
+      item.name.toLowerCase() === names[0].toLowerCase()
+    );
+
+    if (!companyResult?.result?.domain) {
+      throw new Error(`No domain found for company: ${names[0]}`);
+    }
+
+    return companyResult.result.domain;
+  } catch (error) {
+    console.error("Error getting company domain:", error);
+    throw error;
+  }
 };

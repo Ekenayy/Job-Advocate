@@ -26,9 +26,6 @@ export const jobInfoResponseSchema = Type.Object({
   companyName: Type.String({
     description: 'The extracted company name'
   }),
-  companyDomain: Type.String({
-    description: 'The extracted company domain'
-  }),
   companyBackground: Type.String({
     description: 'The extracted company background'
   }),

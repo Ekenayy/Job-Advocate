@@ -68,9 +68,13 @@ Additional domain hints:
     }
 
     // Create the prompt for Gemini
-    const prompt = `Extract the job title, company name, company domain, company background, job requirements, and potential advocates from the following job description in json format.
+    const prompt = `Extract the job title, company name, company background, job requirements, and potential advocates from the following job description in json format.
 
     If you are given information about multiple positions at multiple companies, only extract information from the position and company that you have the most information about. Often times, many jobs postings will appear in a sidebar, but are not the job posting that the user has clicked on.
+
+    For the company name:
+    - Return the most likely, widely used company name.
+    -Example: If the company name is "Amazon.com Services LLC" return "Amazon" 
 
     For the job title:
     - First, identify if the job title has suffixes, prefixes or department/product/team specifications.
@@ -99,28 +103,16 @@ Additional domain hints:
     5.	Format the output as an array of standardized job titles:
     •	Example: ["Engineering Manager", "Senior Software Engineer", "Software Engineer"]
 
-    For the company domain:
-    - Determine the most likely official company domain (e.g., "company.com")
-    - Use the domain hints provided if available. Navigate to any hints to understand the company better.
-    - Look for email addresses in the job posting that might reveal the company domain
-    - If multiple possible domains are found, choose the most likely official one
-    - Return only the domain without "http://" or "www." prefixes
-    - Search the internet and navigate to the company domain to check if it is a valid company website and if the job posting matches the mission and description of the company website that you navigate to
-    - Take your time here. It is critical to get the company domain correct.
-
     Return a JSON object with exactly these fields:
     - jobTitle: The standardized core job title
     - companyName: The name of the company
-    - companyDomain: The company's domain as a URL (e.g., "company.com")
     - companyBackground: The company's background as a string
     - jobRequirements: The job requirements as a string
     - potentialAdvocates: Array of 3-6 job titles of people who would be valuable connections
 
-    ${domainHintsText}
-
     Job description: ${pageContent}
 
-    You must respond with valid JSON containing all requested fields. Do not include any explanatory text before or after the JSON. For job titles and potential advocates, extract only the core titles without location, remote status, or technology stack. For company domains, use the provided hints to determine the most likely official domain.`;
+    You must respond with valid JSON containing all requested fields. Do not include any explanatory text before or after the JSON.`;
 
     // Call the Gemini API
     const result = await model.generateContent({
