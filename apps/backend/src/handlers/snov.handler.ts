@@ -121,7 +121,7 @@ export const getCompanyDomainHandler = async (
   try {
     const { names } = request.body;
     
-    if (!names || names.length === 0) {
+    if (!names) {
       return reply.status(400).send({ 
         error: 'Missing required parameter',
         details: 'Company name is required to search for domain',
@@ -144,23 +144,10 @@ export const getCompanyDomainHandler = async (
           details: 'We couldn\'t authenticate with our domain search service',
           code: 'AUTH_FAILED'
         });
-      } else if (
-        snovError.message?.includes('No domain found') || 
-        snovError.message?.includes('No results found') ||
-        snovError.message?.includes('timed out')
-      ) {
-        // Return 404 for any case where we couldn't get the domain
-        // This includes timeouts, as we want to show the manual input dialog
+      } else if (snovError.message?.includes('No domain found')) {
         return reply.status(404).send({
           error: 'Domain not found',
-          details: snovError.message?.includes('timed out') 
-            ? 'The domain search took too long. Please enter the domain manually.'
-            : `We couldn't find a domain for company: ${names[0]}`,
-          suggestions: [
-            'Enter the domain manually',
-            'Check if the company name is spelled correctly',
-            'Try using the company\'s legal name'
-          ],
+          details: `We couldn't find a domain for company: ${names}`,
           code: 'DOMAIN_NOT_FOUND'
         });
       }
