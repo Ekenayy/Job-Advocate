@@ -101,12 +101,12 @@ export function Paywall({
         <Button className="w-full text-centerw-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed">{buttonText}</Button>
       </DialogTrigger>
       <DialogContent 
-        className="sm:max-w-[425px]"
+        className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto"
         onCloseClick={handleDialogClose}
       >
         <DialogHeader>
-          <DialogTitle>Unlock Unlimited Networking Power</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg">Unlock Unlimited Networking Power</DialogTitle>
+          <DialogDescription className="text-sm">
             You've sent 5/5 free emails—upgrade now to connect with unlimited advocates, get AI-crafted emails, and
             boost your outreach!
           </DialogDescription>
@@ -118,81 +118,83 @@ export function Paywall({
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
           </TabsList>
           <TabsContent value="yearly">
-            <Card className="mt-4 border-primary">
-              <div className="absolute -top-3 left-0 right-0 mx-auto w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
+            <div className="relative">
+              <div className="absolute -top-3 left-0 right-0 mx-auto w-fit rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground z-10">
                 Save 60%
               </div>
-              <CardHeader>
-                <CardTitle>Annual Plan</CardTitle>
-                <CardDescription>
-                  <span className="text-2xl font-bold">$7</span>
-                  <span className="text-muted-foreground">/month</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
-                    <span>Connect with unlimited advocates</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
-                    <span>AI-generated emails tailored to your resume</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
-                    <span>Unlimited outreaches to land your dream role</span>
-                  </li>
-                  <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
-                    <span>Premium support from our expert team</span>
-                  </li>
-                </ul>
-              </CardContent>
-              <CardFooter className="flex flex-col gap-2">
-                <Button onClick={() => handleSubscribe(`yearly`)} className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Processing...' : 'Start networking'}
-                </Button>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Cancel anytime with a 30-day money-back guarantee
-                </p>
-              </CardFooter>
-            </Card>
+              <Card className="mt-4 border-primary">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Annual Plan</CardTitle>
+                  <CardDescription>
+                    <span className="text-2xl font-bold">$7</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center">
+                      <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
+                      <span>Connect with unlimited advocates</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
+                      <span>AI-generated emails tailored to your resume</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
+                      <span>Unlimited outreaches to land your dream role</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
+                      <span>Premium support from our expert team</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-2 pt-2">
+                  <Button onClick={() => handleSubscribe(`yearly`)} className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Processing...' : 'Start networking'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Cancel anytime with a 30-day money-back guarantee
+                  </p>
+                </CardFooter>
+              </Card>
+            </div>
           </TabsContent>
           <TabsContent value="monthly">
             <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>Monthly Plan</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Monthly Plan</CardTitle>
                 <CardDescription>
                   <span className="text-2xl font-bold">$19</span>
                   <span className="text-muted-foreground">/month</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
+              <CardContent className="pb-2">
+                <ul className="space-y-1.5 text-sm">
                   <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
+                    <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
                     <span>Connect with unlimited advocates</span>
                   </li>
                   <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
+                    <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
                     <span>AI-generated emails tailored to your resume</span>
                   </li>
                   <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
+                    <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
                     <span>Unlimited outreaches to land your dream role</span>
                   </li>
                   <li className="flex items-center">
-                    <Check className="mr-2 h-4 w-4 text-primary" />
+                    <Check className="mr-2 h-4 w-4 text-primary shrink-0" />
                     <span>Premium support from our expert team</span>
                   </li>
                 </ul>
               </CardContent>
-              <CardFooter className="pt-2 flex flex-col gap-2">
+              <CardFooter className="flex flex-col gap-2 pt-2">
                 <Button onClick={() => handleSubscribe(`monthly`)} className="w-full" disabled={isLoading}>
                   {isLoading ? 'Processing...' : 'Start networking'}
                 </Button>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Cancel anytime with a 30-day money-back guarantee
                 </p>
               </CardFooter>
